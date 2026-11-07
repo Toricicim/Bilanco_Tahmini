@@ -159,14 +159,14 @@ SELECTED_COMPANIES = {
         "kap_main_sector": "İMALAT",
         "kap_sub_sector": "METAL EŞYA MAKİNE ELEKTRİKLİ CİHAZLAR VE ULAŞIM ARAÇLARI",
         "title": "TÜRK TRAKTÖR VE ZİRAAT MAKİNELERİ A.Ş.",
-        "mkkMemberOid": "4028e4a140f2ed710140f340e1f400c3",
+        "mkkMemberOid": "4028e4a140f2ed720140f3790d6a01ad",
     },
     "OTKAR": {
         "sector_group": "Otomotiv ve Sanayi",
         "kap_main_sector": "İMALAT",
         "kap_sub_sector": "METAL EŞYA MAKİNE ELEKTRİKLİ CİHAZLAR VE ULAŞIM ARAÇLARI",
         "title": "OTOKAR OTOMOTİV VE SAVUNMA SANAYİ A.Ş.",
-        "mkkMemberOid": "4028e4a140f2ed720140f306b2fb00e2",
+        "mkkMemberOid": "4028e4a140ee35c70140ee4316b3001d",
     },
     "ARCLK": {
         "sector_group": "Otomotiv ve Sanayi",
