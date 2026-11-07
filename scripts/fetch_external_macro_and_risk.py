@@ -28,6 +28,8 @@ from pathlib import Path
 import pandas as pd
 from bs4 import BeautifulSoup
 
+from financial_quality import ofr_available_series
+
 ROOT_DIR = Path(__file__).resolve().parent.parent
 EXT_DIR = ROOT_DIR / "data" / "external"
 EXT_DIR.mkdir(parents=True, exist_ok=True)
@@ -198,13 +200,13 @@ def build_macro_and_risk_tables():
     daily["USDTRY"] = daily["USDTRY"].ffill()
     daily["EURTRY"] = daily["EURTRY"].ffill()
 
-    # According to DEGISKEN_LISTESI.md:
-    # M01: son bilinen 90 gunluk USD/TL degisimi (oransal % ve seviye)
-    # M02: son bilinen 90 gunluk EUR/TL degisimi
-    # R03: OFR FSI bilinen son 60 islem gunu ortalamasi (2 is gunu gecikmeli: shift(2))
-    daily["OFR_FSI_avail"] = daily["OFR_FSI"].shift(2)
-    daily["R03_OFR_FSI_60d_mean"] = daily["OFR_FSI_avail"].rolling(60, min_periods=15).mean()
-
+    # Work on real FSI observations before merging back to the FX calendar.
+    # The calendar is an explicit approximation; historical vintages are separate.
+    daily["date"] = pd.to_datetime(daily["date"])
+    available = ofr_available_series(daily)
+    daily = pd.merge_asof(daily.sort_values("date"), available,
+                          left_on="date", right_on="ofr_assumed_available_at", direction="backward")
+    daily["OFR_FSI_avail"] = daily.pop("R03_OFR_FSI")
     daily_out = EXT_DIR / "daily_fx_and_fsi.csv"
     daily.to_csv(daily_out, index=False, encoding="utf-8")
     print(f"Gunluk kur ve OFR FSI tablosu kaydedildi: {daily_out} ({len(daily)} gun)")

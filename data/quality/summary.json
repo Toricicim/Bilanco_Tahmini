@@ -1,0 +1,978 @@
+{
+  "rows": 1320,
+  "columns": 110,
+  "missing_by_column": {
+    "ticker": 0,
+    "company_name": 0,
+    "sector_group": 0,
+    "C01_kap_main_sector": 0,
+    "C01_kap_sub_sector": 0,
+    "year": 0,
+    "quarter": 0,
+    "observation_period": 0,
+    "period_end_date": 0,
+    "first_published_at": 0,
+    "disclosure_index": 0,
+    "consolidation": 0,
+    "original_unit": 0,
+    "currency": 0,
+    "source_file": 0,
+    "source_sha256": 0,
+    "unit_multiplier": 0,
+    "report_available_at": 0,
+    "source_available_at": 0,
+    "earliest_known_publication_at": 0,
+    "publication_status": 0,
+    "T01_hasilat_ytd": 0,
+    "T02_satislarin_maliyeti_ytd": 1,
+    "T03_brut_kar_ytd": 0,
+    "T04_esas_faaliyet_kari_ytd": 1,
+    "T05_finansman_gideri_ytd": 11,
+    "F07_finansman_geliri_ytd": 107,
+    "T06_vergi_gideri_geliri_ytd": 0,
+    "T07_donem_net_kari_ytd": 0,
+    "T07_ana_ortaklik_net_kari_ytd": 133,
+    "T08_nakit_ve_nakit_benzerleri": 0,
+    "F10_kisa_vadeli_ticari_alacaklar": 129,
+    "F10_uzun_vadeli_ticari_alacaklar": 659,
+    "T09_ticari_alacaklar": 750,
+    "T10_stoklar": 27,
+    "donen_varliklar": 8,
+    "duran_varliklar": 8,
+    "T11_toplam_varliklar": 0,
+    "F13_kisa_vadeli_finansal_borclar": 23,
+    "F13_uzun_vadeli_finansal_borclar": 133,
+    "T12_finansal_borclar": 139,
+    "kisa_vadeli_ticari_borclar": 143,
+    "uzun_vadeli_ticari_borclar": 815,
+    "F12_ticari_borclar": 860,
+    "kisa_vadeli_yukumlulukler": 8,
+    "uzun_vadeli_yukumlulukler": 8,
+    "T13_toplam_yukumlulukler": 0,
+    "T14_toplam_ozkaynaklar": 0,
+    "T14_ana_ortakliga_ait_ozkaynaklar": 0,
+    "odenmis_sermaye": 1,
+    "kap_raporlanan_hbk_ytd": 642,
+    "T15_isletme_nakit_akisi_ytd": 1,
+    "T16_yatirim_nakit_akisi_ytd": 5,
+    "T17_finansman_nakit_akisi_ytd": 8,
+    "T01_hasilat_ceyrek": 0,
+    "T02_satislarin_maliyeti_ceyrek": 1,
+    "T03_brut_kar_ceyrek": 0,
+    "T04_esas_faaliyet_kari_ceyrek": 1,
+    "T05_finansman_gideri_ceyrek": 16,
+    "F07_finansman_geliri_ceyrek": 110,
+    "T06_vergi_gideri_geliri_ceyrek": 0,
+    "T07_donem_net_kari_ceyrek": 0,
+    "T07_ana_ortaklik_net_kari_ceyrek": 134,
+    "T15_isletme_nakit_akisi_ceyrek": 2,
+    "T16_yatirim_nakit_akisi_ceyrek": 10,
+    "T17_finansman_nakit_akisi_ceyrek": 11,
+    "available_at": 0,
+    "F07_net_finansman_ytd": 111,
+    "F07_net_finansman_ceyrek": 115,
+    "hisse_basina_kar_ytd": 134,
+    "hisse_basina_kar_ceyrek": 135,
+    "F01_hasilat_qoq_buyume": 30,
+    "F01_hasilat_yoy_buyume": 120,
+    "F03_brut_kar_marji": 84,
+    "F04_esas_faaliyet_marji": 1,
+    "F05_net_kar_marji": 0,
+    "F06_cfo_aktif_orani": 2,
+    "F06_tahakkuk_aktif_orani": 2,
+    "F09_nakit_aktif_orani": 0,
+    "F10_alacak_satis_orani": 750,
+    "F11_stok_maliyet_orani": 27,
+    "F12_ticari_borc_maliyet_orani": 860,
+    "F13_finansal_borc_aktif_orani": 139,
+    "F13_kisa_finansal_borc_aktif_orani": 23,
+    "F13_net_borc": 139,
+    "F14_ozkaynak_aktif_orani": 0,
+    "F14_borc_ozkaynak_orani": 0,
+    "macro_observation_month": 0,
+    "industrial_production_observation_month": 0,
+    "M03_Faiz_Orani": 0,
+    "M03_Faiz_3Aylik_Degisim": 0,
+    "M04_TUFE_YoY": 0,
+    "M05_YIUFE_YoY": 0,
+    "R01_GPR": 0,
+    "R04_GPRT": 0,
+    "R04_GPRA": 0,
+    "R02_GEPU_ppp": 0,
+    "M06_SanayiUretimi_YoY": 30,
+    "M01_USDTRY_seviye": 0,
+    "M01_USDTRY_90g_degisim_pct": 0,
+    "M02_EURTRY_seviye": 0,
+    "M02_EURTRY_90g_degisim_pct": 0,
+    "ofr_observation_date": 0,
+    "R03_OFR_FSI": 0,
+    "ofr_assumed_available_at": 0,
+    "R03_OFR_FSI_60d_mean": 0,
+    "macro_availability_policy": 0,
+    "X02_faiz_degisimi_x_finansal_borc_aktif": 139,
+    "X03_ofr_fsi_x_kisa_borc_aktif": 23
+  },
+  "missing_reason_counts": {
+    "source_value_unavailable": 976,
+    "missing_component": 4349,
+    "unresolved_source_or_mapping": 1895,
+    "insufficient_history": 150,
+    "external_observation_unavailable": 30,
+    "missing_quarter_component": 285,
+    "income_statement_scope_mismatch": 84
+  },
+  "flagged_reports": [
+    {
+      "ticker": "ALCTL",
+      "year": 2010,
+      "quarter": 2,
+      "flags": [
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "ALCTL",
+      "year": 2010,
+      "quarter": 4,
+      "flags": [
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "ALCTL",
+      "year": 2011,
+      "quarter": 1,
+      "flags": [
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "KAREL",
+      "year": 2012,
+      "quarter": 1,
+      "flags": [
+        "correction_uses_later_comparative"
+      ]
+    },
+    {
+      "ticker": "TUPRS",
+      "year": 2013,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TUPRS",
+      "year": 2013,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TUPRS",
+      "year": 2014,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TUPRS",
+      "year": 2014,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "AYGAZ",
+      "year": 2010,
+      "quarter": 3,
+      "flags": [
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "AKSEN",
+      "year": 2014,
+      "quarter": 2,
+      "flags": [
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "ZOREN",
+      "year": 2010,
+      "quarter": 3,
+      "flags": [
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "THYAO",
+      "year": 2013,
+      "quarter": 4,
+      "flags": [
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "RYSAS",
+      "year": 2010,
+      "quarter": 1,
+      "flags": [
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "RYSAS",
+      "year": 2010,
+      "quarter": 2,
+      "flags": [
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "RYSAS",
+      "year": 2010,
+      "quarter": 3,
+      "flags": [
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2012,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2012,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2012,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2012,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2013,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2013,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2013,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2013,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2014,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2014,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2014,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2014,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2015,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2015,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2015,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2015,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2016,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2016,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2016,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2016,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2017,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2017,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2017,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2017,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2018,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2018,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2018,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2018,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2019,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2019,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2019,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2019,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2020,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2020,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2020,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2020,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TAVHL",
+      "year": 2012,
+      "quarter": 1,
+      "flags": [
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2010,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2010,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2010,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2010,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2011,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2011,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2011,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2011,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2012,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2012,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2012,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2012,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement",
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2013,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2013,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement",
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2013,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2013,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2014,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2014,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2014,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2014,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2015,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement",
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2015,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2015,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement",
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2015,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2016,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2016,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2016,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2016,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2017,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2017,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2017,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2017,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2018,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2018,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2018,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2018,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2019,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2019,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2019,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2019,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2020,
+      "quarter": 1,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2020,
+      "quarter": 2,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2020,
+      "quarter": 3,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TOASO",
+      "year": 2020,
+      "quarter": 4,
+      "flags": [
+        "mixed_activity_income_statement"
+      ]
+    },
+    {
+      "ticker": "TTRAK",
+      "year": 2010,
+      "quarter": 1,
+      "flags": [
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "TTRAK",
+      "year": 2014,
+      "quarter": 2,
+      "flags": [
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "TTRAK",
+      "year": 2014,
+      "quarter": 4,
+      "flags": [
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "ULKER",
+      "year": 2012,
+      "quarter": 3,
+      "flags": [
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "CCOLA",
+      "year": 2011,
+      "quarter": 4,
+      "flags": [
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "CCOLA",
+      "year": 2012,
+      "quarter": 1,
+      "flags": [
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "CCOLA",
+      "year": 2013,
+      "quarter": 2,
+      "flags": [
+        "gross_total_conflicts_with_complete_subtotals"
+      ]
+    },
+    {
+      "ticker": "EREGL",
+      "year": 2015,
+      "quarter": 1,
+      "flags": [
+        "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "SARKY",
+      "year": 2010,
+      "quarter": 3,
+      "flags": [
+        "selected_version_later_than_earliest"
+      ]
+    }
+  ],
+  "fully_point_in_time_verified": false,
+  "known_limitations": [
+    "Monthly macro publication dates and historical vintages are not reconstructed.",
+    "OFR availability uses a declared US federal calendar estimate, not historical release timestamps.",
+    "Mixed financial/commercial income statement scopes need separate validation.",
+    "Later comparative KAREL correction requires original first-release evidence for PIT use.",
+    "M03 is the OECD overnight interbank proxy, not a commercial loan rate."
+  ]
+}

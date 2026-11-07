@@ -1,7 +1,9 @@
 # Veri Kalitesi, Zaman Sözleşmesi ve Model Öncesi Denetim Raporu
 
+> Tarihsel kayıt: Bu belge `cd10910` sürümündeki veri ve demo sonuçlarını anlatır. Yeni CSV ve doğrulama durumu için [8 Kasım veri hattı raporuna](VERI_HATTI_DUZELTMELERI_2026-11-08.md) bakın; aşağıdaki “çözüldü” ve başarı iddiaları güncel veri seti için doğrulanmış sonuç sayılmamalı.
+
 **Tarih:** 2026-11-07  
-**Kanonik Veri Seti:** [`bist_bilanco_tahmini_2010_2020.csv`](../../bist_bilanco_tahmini_2010_2020.csv) (`1.320` satır × `96` sütun; 30 Şirket × 44 Çeyrek)  
+**Kanonik Veri Seti:** [`bist_bilanco_tahmini_2010_2020.csv`](https://github.com/Toricicim/Bilanco_Tahmini/blob/cd10910/bist_bilanco_tahmini_2010_2020.csv) (`1.320` satır × `96` sütun; 30 Şirket × 44 Çeyrek)
 **Denetim Betiği:** [`scripts/audit_dataset.py`](../../scripts/audit_dataset.py)  
 **Demo Model Betiği:** [`scripts/run_demo_models.py`](../../scripts/run_demo_models.py)
 
@@ -25,7 +27,7 @@
 
 ### 1.2. Kanonik CSV ve Eksik Yayın Tarihleri (`first_published_at`)
 * **Kök Neden:** `OTKAR` ve `TTRAK` şirketlerinin KAP `mkkMemberOid` kodları katalog sorgusunda güncellenmediği için 2016Q2–2020Q4 arasındaki `38` satırda yayın tarihi eksik kalmıştı. Ayrıca `data/bist_bilanco_tahmini_2010_2020.csv` dosyası başka bir uygulamada (Excel) açık tutulduğu için işletim sistemi kilidi (`PermissionError`) nedeniyle eski sürümde kalmıştı.
-* **Çözüm:** Doğru `mkkMemberOid` kimlikleriyle KAP API'den tüm bildirimler çekildi (`5.884` bildirim). `1.320` satırın tamamında **`first_published_at` eksiksiz (%100 dolu)** hale getirildi. Kanonik çıktı olarak depo kökündeki [`bist_bilanco_tahmini_2010_2020.csv`](../../bist_bilanco_tahmini_2010_2020.csv) belirlendi (Excel kapatıldığında `data/` altındaki kopya da otomatik güncellenmektedir).
+* **Çözüm:** Doğru `mkkMemberOid` kimlikleriyle KAP API'den tüm bildirimler çekildi (`5.884` bildirim). `1.320` satırın tamamında **`first_published_at` eksiksiz (%100 dolu)** hale getirildi. Kanonik çıktı olarak depo kökündeki [`bist_bilanco_tahmini_2010_2020.csv`](https://github.com/Toricicim/Bilanco_Tahmini/blob/cd10910/bist_bilanco_tahmini_2010_2020.csv) belirlendi (Excel kapatıldığında `data/` altındaki kopya da otomatik güncellenmektedir).
 
 ### 1.3. Yayın Tarihi ile Rapor Sürümü (Restatement) Karışıklığı
 * **Kök Neden:** KAP'ın dönemlik ZIP arşivleri, bir şirket daha sonraki bir tarihte düzeltme (restatement) yayımladığında ZIP içerisine ilk raporu değil, son düzeltilmiş raporu koymaktadır (ör. `AKSEN 2018Q1–Q3` raporlarının 2019 Mart'ta, `TUPRS 2016Q4` raporunun 2017 Ağustos'ta yeniden yayımlanması gibi toplam `21` dönem).

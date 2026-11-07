@@ -43,7 +43,7 @@ from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
-CSV_PATH = ROOT_DIR / "bist_bilanco_tahmini_2010_2020.csv"
+CSV_PATH = ROOT_DIR / "data" / "bist_bilanco_tahmini_2010_2020.csv"
 REPORT_OUT = ROOT_DIR / "docs" / "model_oncesi" / "DEMO_MODEL_SONUCLARI_2026-11-07.md"
 
 
@@ -54,7 +54,9 @@ def build_point_in_time_panel(df: pd.DataFrame) -> pd.DataFrame:
     """
     df = df.sort_values(["ticker", "year", "quarter"]).reset_index(drop=True)
     df["pe_dt"] = pd.to_datetime(df["period_end_date"])
-    df["pub_dt"] = pd.to_datetime(df["first_published_at"])
+    # Corrections and YTD differences can become usable after the source report.
+    date_column = "available_at" if "available_at" in df.columns else "first_published_at"
+    df["pub_dt"] = pd.to_datetime(df[date_column])
 
     # Tahmin anı t0: Hedef çeyrek q'nun dönem sonu tarihi (period_end_date).
     # Not: q-1 çeyreğinin finansal raporu normalde q dönem sonuna kadar (45-70 gün içinde) açıklanmış olur.

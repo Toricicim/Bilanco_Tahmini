@@ -1,151 +1,136 @@
-"""
-audit_dataset.py
-================
-Bilanco_Tahmini veri setini (data/bist_bilanco_tahmini_2010_2020.csv ve
-bist_bilanco_tahmini_2010_2020.csv) model egitimi oncesinde denetler:
+"""Audit the canonical data/ CSV and its evidence bundle.
 
-1. Kanonik CSV Senkronizasyon Denetimi:
-   - Depo kokundeki ve data/ altindaki CSV dosyalarinin satir/sutun ve icerik esitligini dogrular.
-2. Yayin Tarihi (first_published_at) ve Rapor Surumu (Restatement) Denetimi:
-   - Eksik yayin tarihi olup olmadigini kontrol eder.
-   - Donem sonundan once (lag <= 0) veya olagan raporlama penceresinden cok sonra (lag > 150 gun)
-     yayinlanmis gorunen bildirimleri listeler.
-3. Birim / Olcek (Scale) ve Tutarliligi Denetimi:
-   - Odenmis sermaye ve Toplam varliklarda ceyrekten ceyrege (QoQ) >4x veya <0.25x sicramalari tarar.
-   - Nakit akislarinda (T15, T16, T17) toplam varliklarin 1.5 katini asan uc degerleri kontrol eder.
-   - Buyume oranlarinda (F01) +/-inf deger olup olmadigini denetler.
-4. Makro ve Kuresel Risk (M01-M06, R01-R04) Zaman Eslemesi Denetimi:
-   - Eksik degerleri ve yayin gecikmesi (publication lag) kurallarini dogrular.
+Exit 0: audited with no review items; 1: invalid/inconsistent build;
+2: mechanically valid build with unresolved source/availability review items.
+The script never downloads data, edits inputs or trains a model.
 """
-
 from __future__ import annotations
 
-import sys
+import argparse
+import gzip
+import json
 from pathlib import Path
+
 import numpy as np
 import pandas as pd
 
-ROOT_DIR = Path(__file__).resolve().parent.parent
-DATA_CSV = ROOT_DIR / "data" / "bist_bilanco_tahmini_2010_2020.csv"
-ROOT_CSV = ROOT_DIR / "bist_bilanco_tahmini_2010_2020.csv"
+from financial_quality import sha256
+
+ROOT = Path(__file__).resolve().parents[1]
+CSV_NAME = "bist_bilanco_tahmini_2010_2020.csv"
 
 
-def run_audit() -> int:
-    issues_found = 0
-    print("=" * 72)
-    print("BIST BILANCO TAHMINI (2010-2020) VERI KALITESI VE SOZLESME DENETIMI")
-    print("=" * 72)
-
-    # 1. Kanonik CSV kontrolü
-    if not ROOT_CSV.is_file():
-        print(f"[HATA] Kanonik dosya bulunamadi: {ROOT_CSV}")
-        return 1
-
-    df = pd.read_csv(ROOT_CSV)
-    print(f"[1] Kanonik Veri Seti ({ROOT_CSV.relative_to(ROOT_DIR)}): {len(df)} satir x {len(df.columns)} sutun")
-
-    if DATA_CSV.is_file():
-        df_data = pd.read_csv(DATA_CSV)
-        same_shape = df.shape == df_data.shape
-        same_pub = df["first_published_at"].fillna("").equals(df_data["first_published_at"].fillna(""))
-        if same_shape and same_pub:
-            print("    -> Kok dizindeki kanonik dosya ile data/ altindaki kopya birebir senkronize.")
-        else:
-            print(f"    [NOT] data/ altindaki kopya ({df_data.shape}) Excel vb. tarafindan kilitli oldugu icin guncellenemedi; kanonik dosya kok dizindeki {ROOT_CSV.name} dosyasidir.")
-
-    # 2. Yayın tarihi ve sürüm kontrolü
-    df["pe_dt"] = pd.to_datetime(df["period_end_date"])
-    df["pub_dt"] = pd.to_datetime(df["first_published_at"], errors="coerce")
-    df["pub_lag_days"] = (df["pub_dt"] - df["pe_dt"]).dt.days
-
-    missing_pub = int(df["pub_dt"].isna().sum())
-    early_pub = int((df["pub_lag_days"] <= 0).sum())
-    late_pub = df[df["pub_lag_days"] > 150]
-
-    print(f"\n[2] Yayin Tarihi ve Rapor Surumu (Point-in-Time) Denetimi:")
-    print(f"    - Eksik first_published_at sayisi       : {missing_pub}")
-    print(f"    - Donem sonundan once (lag <= 0) sayisi : {early_pub}")
-    print(f"    - Gec yayinlanan / duzeltme (lag > 150g): {len(late_pub)}")
-    if missing_pub > 0 or early_pub > 0:
-        issues_found += 1
-    if len(late_pub) > 0:
-        for _, r in late_pub.iterrows():
-            print(f"      * {r['ticker']} {r['observation_period']}: period_end={r['period_end_date']}, pub={r['first_published_at']} ({int(r['pub_lag_days'])} gun)")
-
-    # 3. Birim / Ölçek ve Tutar Denetimi
-    print(f"\n[3] Birim / Olcek (Scale) ve Tutarliligi Denetimi:")
-    df["prev_assets"] = df.groupby("ticker")["T11_toplam_varliklar"].shift(1)
-    df["asset_qoq_ratio"] = df["T11_toplam_varliklar"] / df["prev_assets"]
-    bad_assets = df[(df["asset_qoq_ratio"] > 4.0) | (df["asset_qoq_ratio"] < 0.25)]
-    print(f"    - Toplam Varliklar QoQ sicrama (>4x veya <0.25x): {len(bad_assets)} satir")
-    if len(bad_assets) > 0:
-        issues_found += 1
-        for _, r in bad_assets.iterrows():
-            print(f"      * {r['ticker']} {r['observation_period']}: prev={r['prev_assets']:,.0f} -> curr={r['T11_toplam_varliklar']:,.0f}")
-
-    med_cap = df.groupby("ticker")["odenmis_sermaye"].transform("median")
-    cap_ratio = df["odenmis_sermaye"] / med_cap
-    bad_cap = df[(cap_ratio < 0.05) | (cap_ratio > 20.0) | (df["odenmis_sermaye"] <= 0)]
-    print(f"    - Odenmis Sermaye olcek anomalisi / sifir       : {len(bad_cap)} satir")
-    if len(bad_cap) > 0:
-        issues_found += 1
-
-    cf_cols = ["T15_isletme_nakit_akisi_ytd", "T16_yatirim_nakit_akisi_ytd", "T17_finansman_nakit_akisi_ytd"]
-    extreme_cf = 0
-    for c in cf_cols:
-        ratio = df[c].abs() / df["T11_toplam_varliklar"].replace(0, np.nan)
-        cnt = int((ratio > 1.5).sum())
-        extreme_cf += cnt
-    print(f"    - Nakit Akisi / Toplam Varlik > 1.5x anomalisi  : {extreme_cf} satir")
-    if extreme_cf > 0:
-        issues_found += 1
-
-    num_cols = df.select_dtypes(include=[np.number]).columns
-    inf_cnt = int(np.isinf(df[num_cols].to_numpy()).sum())
-    print(f"    - Sayisal sutunlarda +/-inf deger sayisi        : {inf_cnt}")
-    if inf_cnt > 0:
-        issues_found += 1
-
-    # 4.Temel Hedef Değişkenlerin Doluluk Oranları
-    print(f"\n[4] Demo Hedef Degiskenlerinin Doluluk Oranlari (N={len(df)}):")
-    demo_targets = [
-        "T01_hasilat_ceyrek",
-        "T07_donem_net_kari_ceyrek",
-        "T11_toplam_varliklar",
-        "T14_toplam_ozkaynaklar",
-    ]
-    for col in demo_targets:
-        non_null = int(df[col].notna().sum())
-        zero_cnt = int((df[col] == 0).sum())
-        print(f"    - {col:<28}: {non_null}/1320 dolu ({non_null/len(df)*100:.2f}%), sifir={zero_cnt}")
-
-    # 5. Makro ve Küresel Risk Serileri Kontrolü
-    print(f"\n[5] Makro (M01-M06) ve Kuresel Risk (R01-R04) Doluluk Kontrolu:")
-    mr_cols = [
-        "M01_USDTRY_seviye",
-        "M02_EURTRY_seviye",
-        "M03_Faiz_Orani",
-        "M04_TUFE_YoY",
-        "M05_YIUFE_YoY",
-        "M06_SanayiUretimi_YoY",
-        "R01_GPR",
-        "R02_GEPU_ppp",
-        "R03_OFR_FSI",
-        "R03_OFR_FSI_60d_mean",
-    ]
-    for col in mr_cols:
-        if col in df.columns:
-            nn = int(df[col].notna().sum())
-            print(f"    - {col:<28}: {nn}/1320 dolu ({nn/len(df)*100:.2f}%)")
-
-    print("=" * 72)
-    if issues_found == 0:
-        print("SONUC: BASARILI (Kritik veri, olcek veya tarih ihlali bulunmadi).")
+def audit(data_dir=None):
+    directory = Path(data_dir) if data_dir else ROOT / "data"
+    path = directory / CSV_NAME
+    errors, review = [], []
+    if not path.is_file():
+        return {"errors": [f"Canonical CSV missing: {path}"], "review": [], "exit_code": 1}
+    frame = pd.read_csv(path)
+    keys = ["ticker", "year", "quarter"]
+    base_columns = keys + ["observation_period", "period_end_date", "T12_finansal_borclar", "F13_net_borc",
+                           "T11_toplam_varliklar", "T13_toplam_yukumlulukler", "T14_toplam_ozkaynaklar",
+                           "T01_hasilat_ytd", "T02_satislarin_maliyeti_ytd", "T03_brut_kar_ytd",
+                           "T01_hasilat_ceyrek", "T07_donem_net_kari_ceyrek"]
+    absent = sorted(set(base_columns) - set(frame.columns))
+    if absent:
+        return {"errors": [f"Missing required columns: {absent}"], "review": [], "exit_code": 1}
+    if frame.duplicated(keys).any():
+        errors.append("Duplicate company-quarter keys")
+    if len(frame) != frame.ticker.nunique() * frame.observation_period.nunique():
+        errors.append("Unbalanced company-quarter panel")
+    if np.isinf(frame.select_dtypes("number").to_numpy()).any():
+        errors.append("Infinite numeric values")
+    required = ["source_file", "source_sha256", "available_at", "report_available_at", "publication_status"]
+    for column in required:
+        if column not in frame or frame[column].isna().any():
+            errors.append(f"Missing required provenance: {column}")
+    if "available_at" in frame and "report_available_at" in frame:
+        available = pd.to_datetime(frame.available_at, errors="coerce")
+        reported = pd.to_datetime(frame.report_available_at, errors="coerce")
+        if (available < reported).any():
+            errors.append("Value availability predates its selected source report")
+    if (frame.loc[frame.T12_finansal_borclar.isna(), "F13_net_borc"].notna()).any():
+        errors.append("Unknown financial debt was turned into a numeric net debt")
+    residual = frame.T11_toplam_varliklar - frame.T13_toplam_yukumlulukler - frame.T14_toplam_ozkaynaklar
+    if (residual.abs() > 1).any():
+        errors.append("Balance sheet does not reconcile (1 TRY tolerance)")
+    if "ofr_assumed_available_at" in frame:
+        bad = pd.to_datetime(frame.ofr_assumed_available_at) > pd.to_datetime(frame.period_end_date)
+        if bad.any():
+            errors.append("OFR observation used before its assumed release date")
+    gross = frame.T01_hasilat_ytd + frame.T02_satislarin_maliyeti_ytd - frame.T03_brut_kar_ytd
+    gross_count = int((gross.abs() > 1).sum())
+    mixed = frame.get("qa_flags", pd.Series("", index=frame.index)).fillna("").str.contains("mixed_activity_income_statement")
+    ordinary_gross_count = int(((gross.abs() > 1) & ~mixed).sum())
+    mixed_gross_count = gross_count - ordinary_gross_count
+    if ordinary_gross_count:
+        review.append(f"{ordinary_gross_count} ordinary gross-profit source reconciliation flags (1 TRY scan, not automatic errors)")
+    if mixed_gross_count:
+        review.append(f"{mixed_gross_count} mixed finance/commercial scopes require a different reconciliation")
+    for column in ["T01_hasilat_ceyrek", "T07_donem_net_kari_ceyrek", "T11_toplam_varliklar", "T14_toplam_ozkaynaklar"]:
+        missing = int(frame[column].isna().sum())
+        if missing:
+            review.append(f"{column}: {missing} missing targets; mask these labels, never impute them")
+    quality_dir = directory / "quality"
+    manifest_path = quality_dir / "manifest.json"
+    if not manifest_path.exists():
+        errors.append("Missing completed build manifest")
     else:
-        print(f"SONUC: {issues_found} adet incelenmesi gereken uyari/sorun bulundu.")
-    print("=" * 72)
-    return issues_found
+        manifest = json.loads(manifest_path.read_text())
+        hashes = {item["sha256"] for item in manifest["csv_files"]}
+        if sha256(path) not in hashes:
+            errors.append("CSV hash does not match completed build manifest")
+        for name, expected in manifest["diagnostics_sha256"].items():
+            evidence = quality_dir / name
+            if not evidence.exists() or sha256(evidence) != expected:
+                errors.append(f"Missing/changed diagnostics: {name}")
+        if sha256(Path(__file__).with_name("parse_and_build_dataset.py")) != manifest["parser_sha256"]:
+            errors.append("CSV was not built with the current parser version")
+        if sha256(Path(__file__).with_name("financial_quality.py")) != manifest["quality_code_sha256"]:
+            errors.append("CSV was not built with the current quality helpers")
+        for name, expected in manifest["external_sha256"].items():
+            if sha256(ROOT / "data/external" / name) != expected:
+                errors.append(f"External input changed: {name}")
+        if sha256(ROOT / "data/kap_fr_catalog_2010_2020.json") != manifest["catalog_sha256"]:
+            errors.append("Publication catalog changed since the build")
+    if all(column in frame for column in ["source_file", "source_sha256"]):
+        for _, row in frame[["source_file", "source_sha256"]].drop_duplicates().iterrows():
+            source = ROOT / str(row.source_file)
+            if not source.exists() or sha256(source) != row.source_sha256:
+                errors.append(f"Raw source hash mismatch: {row.source_file}")
+    summary_path = quality_dir / "summary.json"
+    if summary_path.exists():
+        summary = json.loads(summary_path.read_text())
+        if not summary.get("fully_point_in_time_verified"):
+            review.append("Historical macro vintages/release timestamps are not fully verified")
+        if summary.get("flagged_reports"):
+            review.append(f"{len(summary['flagged_reports'])} reports carry explicit source/scope/correction flags")
+        for name in ("missing_values.jsonl.gz", "financial_sources.jsonl.gz"):
+            file = quality_dir / name
+            if file.exists():
+                try:
+                    for line in gzip.decompress(file.read_bytes()).decode().splitlines():
+                        json.loads(line)
+                except (ValueError, OSError, UnicodeError) as error:
+                    errors.append(f"Unreadable evidence: {name}: {error}")
+    else:
+        errors.append("Missing quality summary")
+    return {"rows": len(frame), "columns": len(frame.columns), "gross_flags": gross_count,
+            "ordinary_gross_flags": ordinary_gross_count, "mixed_scope_flags": mixed_gross_count,
+            "errors": errors, "review": review, "exit_code": 1 if errors else 2 if review else 0}
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--data-dir", type=Path, help="Directory containing the canonical CSV and quality/ bundle")
+    args = parser.parse_args()
+    result = audit(args.data_dir)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    if result["exit_code"] == 2:
+        print("URETIM KONTROLLERI GECTI; KAYNAK/ZAMAN INCELEMESI GEREKIYOR. Bu, egitime hazir onayi degildir.")
+    raise SystemExit(result["exit_code"])
 
 
 if __name__ == "__main__":
-    sys.exit(run_audit())
+    main()
