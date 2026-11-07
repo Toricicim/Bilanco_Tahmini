@@ -2,6 +2,8 @@
 
 Son düzenleme: **8 Kasım 2026**. Belgeler iki çalışma alanına ayrılır. Henüz eğitilmiş model veya çalışan site yoktur.
 
+Yeni AI/geliştirici önce [çalışma rehberini](../AGENTS.md) ve [geliştirme günlüğünü](GELISTIRME_GUNLUGU.md) okumalıdır. Her commitin gerekçesi, kontrolleri ve kalan işleri günlükte kaydedilir.
+
 | Alan | Amaç | Başlangıç |
 |---|---|---|
 | **Model öncesi** | Araştırma, geçmiş veri, değişken seçimi, eğitim ve doğrulamayla kullanılabilir model paketi üretmek | [Geliştirme/eğitim rehberi](model_oncesi/README.md) |
