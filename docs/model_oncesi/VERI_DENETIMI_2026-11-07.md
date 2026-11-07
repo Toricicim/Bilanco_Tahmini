@@ -1,102 +1,177 @@
-# Veri Kalitesi, Zaman Sözleşmesi ve Model Öncesi Denetim Raporu
+# Veri yeterliliği ve ilk demo kararı — 7 Kasım 2026
 
-> Tarihsel kayıt: Bu belge `cd10910` sürümündeki veri ve demo sonuçlarını anlatır. Yeni CSV ve doğrulama durumu için [8 Kasım veri hattı raporuna](VERI_HATTI_DUZELTMELERI_2026-11-08.md) bakın; aşağıdaki “çözüldü” ve başarı iddiaları güncel veri seti için doğrulanmış sonuç sayılmamalı.
+**Karar: Veri miktarı küçük bir tarihsel demo için yeterli bir başlangıç; mevcut CSV doğrudan güvenilir model eğitimine hazır değil.** Önce finansal doğruluk, rapor sürümü/yayın zamanı ve girdi–hedef ayrımı tamamlanmalı. Bu incelemede model eğitilmedi ve kaynak veriler değiştirilmedi.
 
-**Tarih:** 2026-11-07  
-**Kanonik Veri Seti:** [`bist_bilanco_tahmini_2010_2020.csv`](https://github.com/Toricicim/Bilanco_Tahmini/blob/cd10910/bist_bilanco_tahmini_2010_2020.csv) (`1.320` satır × `96` sütun; 30 Şirket × 44 Çeyrek)
-**Denetim Betiği:** [`scripts/audit_dataset.py`](../../scripts/audit_dataset.py)  
-**Demo Model Betiği:** [`scripts/run_demo_models.py`](../../scripts/run_demo_models.py)
+İki ayrı inceleme yapıldı: biri ham dosyalar ve finansal kaliteyi, diğeri tahmin zamanı, değişken kapsamı ve demo deneyini denetledi. Finansal dosyaların tamamı resmî PDF'lerle tek tek karşılaştırılmadı; aşağıdaki şüpheli kayıtlar tam doğruluk sertifikası değildir.
 
----
+İncelenen depo sürümü: `91a7d0eba593dd90b2d37a4e73bdfbb4756b421c`. Sayısal sonuçlar ve sorunlu kayıt anahtarları [JSON denetim çıktısında](veri_denetimi_2026-11-07.json), tekrar çalıştırılabilir kontroller [audit_dataset.py](arsiv/audit_dataset_ilk_inceleme.py.txt) dosyasındadır. JSON, CSV/kod/katalog özetlerini SHA-256 ile kaydeder; bu bir eğitim veri manifestosunun yerine geçmez.
 
-## 1. Tespit Edilen Kritik Veri Sorunları ve Uygulanan Çözümler
+## 1. Elimizde ne var, neye yeter?
 
-İki ajanla yapılan ön incelemede tespit edilen **5 temel bulgu** ham KAP `.xls` dosyaları ve KAP bildirim kataloğu üzerinde tek tek doğrulanmış ve kalıcı olarak çözülmüştür:
+| Özellik | Sonuç | Yorum |
+|---|---:|---|
+| Şirket × çeyrek | 30 × 44 = **1.320 gözlem** | Şirket başına 2010Q1–2020Q4 |
+| Sütun | **92** | Kimlik, aynı dönem finansalları, oranlar, makro/risk; 92 hazır model girdisi değil |
+| Sektör grubu | 6 grupta 5'er şirket | Bütün BIST kapsamı değil |
+| Tekrarlanan şirket–çeyrek | **0** | Panel düzenli |
+| Varlık = yükümlülük + özkaynak | 1.320 satırda 1 TL toleransla sağlanıyor | Bazı toplamlar parser'da bu eşitlikten türetildiği için bağımsız doğruluk kanıtı değil |
+| Makro/risk zaman çeşitliliği | **44 çeyrek** | Aynı çeyreğin riskini 30 şirkette tekrarlamak 1.320 bağımsız makro gözlem yaratmaz |
 
-### 1.1. Birim / Ölçek (Scale) ve Ham Tablo Anomalileri
-* **THYAO (`2015Q4` ve `2016Q1`) & TOASO (`2013Q1` ve `2014Q3`):**
-  * **Kök Neden:** Ham KAP Excel dosyalarında `Raporlama Birimi` hücresinde **`TL`** yazmasına karşın, şirketler tabloları gerçekte **THYAO için Milyon TL (`1.000.000 TL`)**, **TOASO için Bin TL (`1.000 TL`)** ölçeğinde doldurmuştur (ör. THYAO'nun `1,38` milyar TL olan ödenmiş sermayesi `1.380`, toplam varlığı `47.638` olarak; TOASO'nun `500` milyon TL olan ödenmiş sermayesi `500.000` olarak yer almıştır).
-  * **İlk Bildirim Birim Hatası (`SARKY 2017Q2`):** `626777` nolu ilk bildirimde şirket `Sunum Para Birimi` olarak `1.000 TL` seçip rakamları tam `TL` girmiş (`95` dakika sonra `626866` nolu bildirimle düzeltmiştir).
-  * **Çözüm:** [`scripts/parse_and_build_dataset.py`](../../scripts/parse_and_build_dataset.py) içerisine açık birim doğrulama ve düzeltme kuralları eklendi. Tüm `1.320` gözlemde çeyrekten çeyreğe (`QoQ`) aktif sıçrama anomalisi **`0`'a** indirildi.
-* **KAREL (`2012Q1`) Trilyonluk Nakit Akışı Sorunu:**
-  * **Kök Neden:** `KAREL_2012_Q1.xls` (BIFF8) dosyasının Nakit Akış Tablosundaki 5 hücrede (`R156`, `R167`, `R179`, `R186`, `R190`) şirketin muhasebe yazılımından kaynaklanan bozuk kayan nokta (floating-point) kaydı (`115282692945205.0` ve `-477891329452055.0`) bulunmaktadır.
-  * **Doğrulama ve Çözüm:** Hem aynı tablodaki *"Dönem başı nakit (`30.844.143`) + Net nakit değişimi + Kur farkı (`116.000`) = Dönem sonu nakit (`46.510.193`)"* denkleminden hem de `KAREL_2013_Q1.xls` dosyasının karşılaştırmalı *"Önceki Dönem (2012 Q1)"* sütunundan gerçek tutarların tam olarak **`11.528.269 TL`** (İşletme Nakit Akışı) ve **`-4.778.913 TL`** (Yatırım Nakit Akışı) olduğu doğrulandı ve düzeltildi.
-* **OTKAR (`2010Q4`, `2012Q4`), GSDDE (`2013–2016`) ve CLEBI (`2010Q2`) Sıfır Hasılat / Sermaye Sorunu:**
-  * **Kök Neden:** `OTKAR` yıllık raporlarında 3 aylık sütunlara boşluk yerine `0.0` yazıldığı için çeyreklik fark yerine `0` alınması; `GSDDE`'nin gelir tablosunda üst `Hasılat` satırına `0` yazıp gerçek geliri alt kırılımda (`- Denizcilik Sektörü Gelirleri`) raporlaması; `CLEBI 2010Q2`'de `Ödenmiş Sermaye` satırına `0` yazılıp bir alt satırdaki `Sermaye` satırına `24.300.000` yazılması.
-  * **Çözüm:** Yıllık raporlarda `raw_3m == 0` iken `YTD_Q4 - YTD_Q3` farkının alınması, denizcilik/hizmet alt gelirlerinin toplanması ve `Sermaye` yedeği eklendi. Büyüme oranlarındaki (`F01`) tüm `±inf` değerler **`0`'a** indi.
+**Yeterli:** finans dışı seçilmiş şirketlerde birkaç kalem için geçmişe dönük temel kıyas ve küçük tablosal ML deneyi.
 
-### 1.2. Kanonik CSV ve Eksik Yayın Tarihleri (`first_published_at`)
-* **Kök Neden:** `OTKAR` ve `TTRAK` şirketlerinin KAP `mkkMemberOid` kodları katalog sorgusunda güncellenmediği için 2016Q2–2020Q4 arasındaki `38` satırda yayın tarihi eksik kalmıştı. Ayrıca `data/bist_bilanco_tahmini_2010_2020.csv` dosyası başka bir uygulamada (Excel) açık tutulduğu için işletim sistemi kilidi (`PermissionError`) nedeniyle eski sürümde kalmıştı.
-* **Çözüm:** Doğru `mkkMemberOid` kimlikleriyle KAP API'den tüm bildirimler çekildi (`5.884` bildirim). `1.320` satırın tamamında **`first_published_at` eksiksiz (%100 dolu)** hale getirildi. Kanonik çıktı olarak depo kökündeki [`bist_bilanco_tahmini_2010_2020.csv`](https://github.com/Toricicim/Bilanco_Tahmini/blob/cd10910/bist_bilanco_tahmini_2010_2020.csv) belirlendi (Excel kapatıldığında `data/` altındaki kopya da otomatik güncellenmektedir).
+**Henüz yeterli değil:** tüm BIST'e genelleme, banka/sigorta tabloları, 2026'da canlı tahmin, 2021 sonrası rejimler veya olayların şirketlere farklı etkisini güçlü biçimde öğrenme. Sonraki veri genişletme önce daha yakın dönemleri ve tutarlı muhasebe temelini kapsamalı; enflasyon muhasebesi uygulanan raporların karşılaştırılabilirliği ayrıca ele alınmalı. Yalnız şirket sayısını artırmak zaman çeşitliliğinin yerini tutmaz. Örneklemin hangi tarihli şirket evreninden seçildiği de kaydedilmeli; kapanan/kottan çıkan şirketleri dışlama ihtimali değerlendirilmelidir.
 
-### 1.3. Yayın Tarihi ile Rapor Sürümü (Restatement) Karışıklığı
-* **Kök Neden:** KAP'ın dönemlik ZIP arşivleri, bir şirket daha sonraki bir tarihte düzeltme (restatement) yayımladığında ZIP içerisine ilk raporu değil, son düzeltilmiş raporu koymaktadır (ör. `AKSEN 2018Q1–Q3` raporlarının 2019 Mart'ta, `TUPRS 2016Q4` raporunun 2017 Ağustos'ta yeniden yayımlanması gibi toplam `21` dönem).
-* **Çözüm:** Bu `21` dönemin **ilk yayın tarihindeki orijinal `disclosure_index` sayfaları** doğrudan KAP'tan indirildi ve sonradan düzeltilmiş dosyalarla değiştirildi. Ayrıca `TTRAK 2014Q2` BIFF8 dosyasının kapak satırındaki ilk yayın tarihi (`2014-08-06 17:46:59`) okundu. Böylece `150` günü aşan gecikmeli/restated bildirim sayısı **`0`'a** indirildi.
+### Finansal hedeflerde doluluk
 
-### 1.4. Makro ve Küresel Risk Serilerinin Yayın Zamanı (Publication Lag) Güvencesi
-* **Uygulanan Kural ([`merge_external_macro_and_risk`](../../scripts/parse_and_build_dataset.py)):**
-  * **Aylık GPR (`R01`), GPRT/GPRA (`R04`), GEPU (`R02`), TÜFE (`M04`), Yİ-ÜFE (`M05`), Faiz (`M03`):** Ay bittikten sonra (izleyen ayın başında) yayımlandığı için, dönem sonu `t0` anında o ayın (`m`) değeri değil, tamamlanmış ve yayımlanmış bir önceki ayın (**`m - 1`**) değeri eşlenir.
-  * **Aylık Sanayi Üretimi (`M06`):** TÜİK tarafından ~45 gün gecikmeyle açıklandığı için **`m - 2`** ayı eşlenir.
-  * **Günlük OFR FSI (`R03`):** 2 iş günü gecikmeli yayımlandığı için `OFR_FSI.shift(2)` (`OFR_FSI_avail`) ve bunun 60 işlem günlük ortalaması kullanılır.
+Doluluk, tutarın doğru veya o tarihte bilinebilir olduğu anlamına gelmez.
 
----
+| Tek çeyrek akış / dönem sonu stok | Dolu / 1.320 | Eksik |
+|---|---:|---:|
+| Hasılat, brüt kâr, net kâr, vergi | Her biri 1.320 | 0 |
+| Satış maliyeti, esas faaliyet kârı | Her biri 1.319 | 1 |
+| Finansman gideri | 1.304 | 16 |
+| Nakit, toplam varlık, toplam yükümlülük, özkaynak | Her biri 1.320 | 0 |
+| Ticari alacak | 1.282 | 38 |
+| Stok | 1.293 | 27 |
+| Finansal borç | 1.303 | 17 |
+| İşletme nakit akışı | 1.320 | 0; ciddi tutar sorunları var |
+| Yatırım nakit akışı | 1.255 | 65 (%4,9) |
+| Finansman nakit akışı | 1.169 | 151 (%11,4) |
 
-## 2. Girdi–Hedef Ayrımı ve Sızıntısız (Point-in-Time) Modelleme Sözleşmesi
+## 2. Eğitimden önce çözülmesi gerekenler
 
-[`scripts/run_demo_models.py`](../../scripts/run_demo_models.py) içerisinde kurulan eğitim ve test boru hattı:
-1. **Sıfır Veri Sızıntısı (No Target Leakage):** Tahmin edilen `q` çeyreğine ait hiçbir kalem veya oran girdide yer almaz. Yalnızca `t0` anında yayımlanmış (`first_published_at <= t0`) geçmiş çeyrekler (`q-1`, `q-4`, `q-5`) kullanılır.
-2. **Ölçekleme (`F01`):** Şirketler arası ölçek farkını dengelemek için hedef tutarlar ve geçmiş tutarlar şirketin **bilinen son toplam varlığı (`Assets_{q-1}`)** ile normalize edilir; model tahminleri tekrar `Assets_{q-1}` ile çarpılarak TL'ye çevrilir.
-3. **Kapsam Sınırı Notu:** Mevcut veri seti P0 finansal geçmiş, Türkiye makrosu ve küresel risk endekslerini içermektedir. Dipnot gerektiren P1/P2 şirket profili değişkenleri (ihracat payı `C03`, net döviz pozisyonu `F19`, sipariş/backlog `C09`) ile 2021 sonrası yüksek enflasyon / TMS 29 dönemi sonraki aşamanın kapsamındadır.
+### A. İki CSV farklı sürümler taşıyor
 
----
+| Eksik alan | [Kök CSV](https://github.com/Toricicim/Bilanco_Tahmini/blob/91a7d0e/bist_bilanco_tahmini_2010_2020.csv) | [data/ CSV](https://github.com/Toricicim/Bilanco_Tahmini/blob/91a7d0e/data/bist_bilanco_tahmini_2010_2020.csv) |
+|---|---:|---:|
+| `first_published_at` | **38** | **570** |
+| `disclosure_index` | **50** | **750** |
 
-## 3. İlk Demo Deneyi Sonuçları (`2017Q1–2020Q4` Walk-Forward Testi, `N = 480` Gözlem)
+İki dosyanın 1.320 şirket–çeyrek anahtarı aynı. Finansal ve makro sayılar `rtol=1e-12, atol=1e-9` karşılaştırmasında aynı; oranlarda metinsel/ondalık gösterim farkları var. Yayın tarihi hücrelerinin 544'ü, bildirim numarası hücrelerinin 700'ü farklı.
 
-[`scripts/run_demo_models.py`](../../scripts/run_demo_models.py) ile her test yılı (`2017`, `2018`, `2019`, `2020`) için yalnızca önceki yıllarda açıklanmış verilerle model eğitilmiş ve 4 ana hedef üzerinde değerlendirilmiştir. Hata metrikleri **Bilinen Son Toplam Varlık (`% Aktif`)** cinsinden ölçülmüştür:
+Kök dosya metadata bakımından daha iyi bir başlangıç; finansal doğruluk sorunları ikisinde de var. [Çıktı kodu](https://github.com/Toricicim/Bilanco_Tahmini/blob/91a7d0e/scripts/parse_and_build_dataset.py#L970), kökü önce yazıp `data/` yazılamazsa devam edebiliyor. Bu, kopyaların farklı kalmasına yol açabilen bir yol; mevcut farkın nedenini tek başına ispatlamaz.
 
-### 3.1. `T01` Hasılat (Çeyreklik Satışlar)
-| Model | MAE (% Aktif) | MedAE (% Aktif) | RMSE (% Aktif) | $R^2$ (Ölçekli) |
-|---|---|---|---|---|
-| **Son Bilinen Değer (`q-1`)** | 5.200 | 3.117 | 8.541 | 0.8508 |
-| **Geçen Yılın Aynı Çeyreği (`q-4`)** | 7.129 | 4.728 | 10.495 | 0.7747 |
-| **Ridge (Sadece Finansal Geçmiş)** | 4.468 | **2.594** | 7.660 | 0.8800 |
-| **Ridge (+ Makro & Risk Endeksleri)** | **4.395** | 2.795 | 7.253 | 0.8924 |
-| **Random Forest (Sadece Finansal Geçmiş)** | 4.398 | 2.619 | 7.310 | 0.8907 |
-| **Random Forest (+ Makro & Risk Endeksleri)** | 4.399 | 2.668 | **7.199** | **0.8940** |
+**Yapılacak:** tek kanonik çıktı; açık sürüm/üretim zamanı; kaynak dosya hash'leri; parser ve ortam sürümü. Güncel parser'da bulunan `kap_raporlanan_hbk_ytd` ve EPS ile ilgili alanlar mevcut 92 sütunlu çıktıda yok. Yeniden üretim doğrulanmalı. Bağımlılıklar/sürümler bir ortam dosyasında sabitlenmeli; tam veri indirme kontrolsüz tekrarlanmamalı.
 
-### 3.2. `T07` Dönem Net Kârı (Çeyreklik)
-| Model | MAE (% Aktif) | MedAE (% Aktif) | RMSE (% Aktif) | $R^2$ (Ölçekli) |
-|---|---|---|---|---|
-| **Son Bilinen Değer (`q-1`)** | 2.085 | 1.192 | 3.470 | -0.2791 |
-| **Geçen Yılın Aynı Çeyreği (`q-4`)** | 2.031 | 1.122 | 3.376 | -0.2109 |
-| **Ridge (Sadece Finansal Geçmiş)** | 1.749 | 1.134 | 2.717 | 0.2157 |
-| **Ridge (+ Makro & Risk Endeksleri)** | 1.832 | 1.230 | 2.717 | 0.2156 |
-| **Random Forest (Sadece Finansal Geçmiş)** | 1.691 | **1.053** | 2.688 | 0.2326 |
-| **Random Forest (+ Makro & Risk Endeksleri)** | **1.654** | 1.072 | **2.580** | **0.2928** |
+### B. Ham kaynağa kadar giden büyüklük ve birim sorunları
 
-### 3.3. `T11` Toplam Varlıklar
-| Model | MAE (% Aktif) | MedAE (% Aktif) | RMSE (% Aktif) | $R^2$ (Ölçekli) |
-|---|---|---|---|---|
-| **Son Bilinen Değer (`q-1`)** | 8.287 | 5.526 | 11.986 | -0.3375 |
-| **Geçen Yılın Aynı Çeyreği (`q-4`)** | 21.589 | 19.035 | 25.626 | -5.1145 |
-| **Ridge (Sadece Finansal Geçmiş)** | 7.535 | 5.105 | 10.764 | -0.0788 |
-| **Ridge (+ Makro & Risk Endeksleri)** | 7.148 | 5.443 | **9.819** | **0.1024** |
-| **Random Forest (Sadece Finansal Geçmiş)** | 7.547 | 5.414 | 10.716 | -0.0691 |
-| **Random Forest (+ Makro & Risk Endeksleri)** | **7.068** | **5.087** | 10.035 | 0.0623 |
+| Kayıt | Kanıt | İşlem |
+|---|---|---|
+| KAREL 2012Q1 | [Ham XLS](https://github.com/Toricicim/Bilanco_Tahmini/blob/91a7d0e/data/kap_raw_xls/KAREL_2012_Q1.xls) işletme nakit akışı **115.282.692.945.205 TL**, yatırım nakit akışı **−477.891.329.452.055 TL**; toplam varlık **219.501.352 TL**. Sayılar BIFF hücrelerinde de var. | Özgün finansal rapor/PDF ile doğrula; yalnız parser hatası olarak sınıflandırma. YTD farkından etkilenen Q2'yi de incele. |
+| THYAO 2015Q4 / 2016Q1 | Varlık **47.638 / 48.349 TL** görünüyor; komşu dönemlerle milyon katına yaklaşan fark. 2015Q4 çeyrek hasılatı **−21.593.390.038 TL** çıkıyor. | Raporlama ölçeğini ve dönem dönüşümünü özgün raporla doğrula. |
+| TOASO 2013Q1 / 2014Q3 | Varlık **6.266.179 / 6.550.101 TL**; komşu dönemlerle yaklaşık bin kat fark. | Birim çarpanını özgün rapordan doğrula. |
 
-### 3.4. `T14` Toplam Özkaynaklar
-| Model | MAE (% Aktif) | MedAE (% Aktif) | RMSE (% Aktif) | $R^2$ (Ölçekli) |
-|---|---|---|---|---|
-| **Son Bilinen Değer (`q-1`)** | 3.757 | 2.506 | 5.667 | 0.9068 |
-| **Geçen Yılın Aynı Çeyreği (`q-4`)** | 8.621 | 6.765 | 11.012 | 0.6482 |
-| **Ridge (Sadece Finansal Geçmiş)** | **3.388** | **2.131** | **5.222** | **0.9209** |
-| **Ridge (+ Makro & Risk Endeksleri)** | 3.579 | 2.501 | 5.275 | 0.9193 |
-| **Random Forest (Sadece Finansal Geçmiş)** | 3.620 | 2.313 | 5.454 | 0.9137 |
-| **Random Forest (+ Makro & Risk Endeksleri)** | 3.636 | 2.243 | 5.505 | 0.9121 |
+THYAO ve TOASO ham başlıklarında da TL yazıyor. Başlığa bakarak birim tanımak bütün hataları çözmüyor. Bu dört satır güçlü ölçek şüphelisidir; otomatik `×1.000` / `×1.000.000` düzeltmesi önerilmiyor.
 
-### 3.5. Temel Çıkarımlar
-1. **Baz Modellerin Üzerinde Net Kazanç:** Dört hedefin tamamında hem **Ridge** hem de **Random Forest** modelleri, `q-1` (Son Bilinen Değer) ve `q-4` (Geçen Yılın Aynı Çeyreği) baz modellerini anlamlı biçimde geride bırakmıştır.
-2. **Makro ve Küresel Risk Endekslerinin (`GPR`, `GEPU`, `OFR FSI`) Katkısı:**
-   * Zaman eşlemesi düzeltilmiş makro ve küresel risk serileri eklendiğinde, doğrusal olmayan **Random Forest** modelinde özellikle **Dönem Net Kârı (`T07`)** ($R^2$: `0.2326` $\rightarrow$ `0.2928`, RMSE: `2.688` $\rightarrow$ `2.580`) ve **Toplam Varlıklar (`T11`)** (MAE: `7.547` $\rightarrow$ `7.068`) tahminlerinde belirgin iyileşme sağlanmıştır.
-   * Buna karşılık **Toplam Özkaynaklar (`T14`)** gibi daha durağan bilanço kalemlerinde sadece finansal geçmişle kurulan **Ridge** modeli (`MAE: %3.388`, $R^2$: `0.9209`) en düşük hatayı vermektedir; ortak makro/risk serilerinin şirket bazında farklılaşan etkisini tam yakalamak için bir sonraki aşamada **P1 şirket profili değişkenlerinin (net döviz pozisyonu `F19`, ihracat payı `C03`, sipariş yapısı `C09`)** eklenmesi gerektiği deneysel olarak da doğrulanmıştır.
+Denetim eşikleriyle **6 komşu dönem varlık sıçraması** (>20 kat veya <1/20), **9 nakit akışı hücresi** (mutlak çeyrek akışı / varlık >10) işaretlendi. Bunlar araştırma bayrağıdır; eşik aşımı tek başına hata kanıtı değildir. Bozuk bir dönem sonraki çeyrek farklarını, büyüme oranlarını ve gecikmeli girdileri de etkiler. Karantina yalnız tek satıra uygulanmamalı; türetme bağımlılıkları izlenmelidir.
 
+### C. Finansal anlam ve türetme kuralları
+
+- `hasılat + imzalı satış maliyeti − brüt kâr` kontrolü **27 YTD satırında 1 TL'yi aşıyor**: TUPRS 13, GSDDE 12, ALCTL 1, RYSAS 1. Bir TL eşiği tarama içindir; özgün birimin yuvarlama toleransı ayrıca hesaba katılmalı.
+- GSDDE 2016Q1'de parser ticari faaliyet brüt kârını **−3,606 milyon TL** seçiyor; [ham dosyada](https://github.com/Toricicim/Bilanco_Tahmini/blob/91a7d0e/data/kap_raw_xls/GSDDE_2016_Q1.xls) toplam brüt kâr **−3,734 milyon TL**. Çok faaliyetli tabloya uygun eşleme gerekiyor. TUPRS/RYSAS örneklerinin bazıları ham kaynakta da uyumsuz; aynı neden varsayılmamalı.
+- Dört çeyrek toplamı ile Q4 YTD, hasılatta **42**, net kârda **51 şirket-yılda** 1 TL'den fazla farklı; farkın %1'i aştığı sayılar **24 / 26**. Ayrı üç aylık sütunlar, restatement ve yuvarlama meşru fark yaratabilir. `quarter_method` ve veri sürümü olmadan otomatik hata/düzeltme kararı verilmemeli.
+- [Net borç](https://github.com/Toricicim/Bilanco_Tahmini/blob/91a7d0e/scripts/parse_and_build_dataset.py#L876), eksik finansal borcu sıfırla dolduruyor; borcu eksik 17 satırda net borç yanlış yorumlanabilir. Eksik, sıfır demek değildir. Finansman gelir/gideri toplamı ve alt kalem toplamlarında da aynı ayrım korunmalı.
+- Büyümelerde **4 QoQ, 6 YoY sonsuz değer** var. Eğitim öncesi sıfır payda ve sonlu sayı kontrolü gerekli; hedef eksikleri uydurulmamalı.
+- Nakit akışı bölümünde [son sayısal satıra düşen yedek eşleme](https://github.com/Toricicim/Bilanco_Tahmini/blob/91a7d0e/scripts/parse_and_build_dataset.py#L636) her zaman toplamı seçmeyebilir. Ana ortaklık/net kâr ve toplam/ana ortaklık özkaynak alanlarının birbirine yedeklenmesi de raporlanan–türetilen ayrımını gerektirir.
+- Güncel koddaki sermaye üzerinden hesaplanan EPS, ağırlıklı ortalama hisse sayısına dayalı gerçek EPS kabul edilmemeli. İlk demo EPS'ye bağlı olmamalı.
+- Yatırım faaliyetlerinden toplam nakit akışı, tek başına yatırım harcaması (capex) değildir. FAVÖK için de amortisman/itfa gibi ek bileşenler gerekir; mevcut başlıkların varlığı bu hedeflerin hazır olduğu anlamına gelmez.
+
+**Her finansal değerde gerekli iz:** `source_file`, bildirim kimliği, tablo/satır etiketi, özgün değer/birim, uygulanan çarpan, rapor sürümü, `available_at`, `quarter_method`, `is_derived`, `qa_flags`. Akışlar tek çeyrek; stoklar dönem sonu değeri olarak tutulmalı. YTD farkının iki kaynağı da saklanmalı ve aynı muhasebe/sürüm temelinde oldukları kontrol edilmeli.
+
+### D. Yayın tarihi ile tutarın sürümü birlikte doğrulanmalı
+
+`first_published_at` alanı her kayıtta ilk yayım anlamına gelmiyor. Örnek:
+
+- **AKSEN 2018Q1:** CSV ve seçilen dosya bildirim numarası `748443`, tarih **2019-03-19 00:00:49**.
+- [Katalogdaki](https://github.com/Toricicim/Bilanco_Tahmini/blob/91a7d0e/data/kap_fr_catalog_2010_2020.json) aynı çeyrek için en erken kayıt `683063`, tarih **2018-05-10 21:15:51**; ayrıca aynı akşam başka bildirimler var.
+- [Parser](https://github.com/Toricicim/Bilanco_Tahmini/blob/91a7d0e/scripts/parse_and_build_dataset.py#L802), dosya adındaki bildirim kimliğinin tarihini tercih ediyor. Sonraki sürümün tutarına ilk sürümün tarihini vermek, o gün bilinmeyen bilgiyi geçmişe taşır.
+
+Çözüm, tarih alanını tek başına erkene çekmek değildir. **Tutar, dosya sürümü ve gerçekten açıklanma zamanı eşleşmelidir.** İlk yayımlanan hedefi mi, sonradan düzeltilmiş hedefi mi tahmin ettiğimiz de etiket sözleşmesinde açık yazılmalı. İlk demo için ilk yayımlanan hedef öneriliyor.
+
+Sadece tarih/lag uygunluğu kontrolünde, q−1/q−4 hasılatı yayımlanmış ve geçmiş varlığı pozitif aday sayısı kök CSV'de **1.142**, `data/` kopyasında **643**. Bu sayılar finansal kalite ve gerçek ilk sürüm denetiminden geçmiş eğitim örneği sayısı değildir. Kök dosyada **22 q−1 raporu**, hedef çeyrek sonundan sonra yayımlanmış görünüyor: `.shift(1)` tek başına zaman güvenliği sağlamıyor. CSV zamanlarında saat dilimi alanı yok; bu kontrol yerel KAP saati ve çeyrek sonu gün sonunu varsayıyor.
+
+### E. Aynı dönem finansalları hazır model girdisi değil
+
+Mevcut CSV bir şirket–dönem gözlem tablosu. Örneğin 2020Q2 hasılatı ve o hasılattan hesaplanan net kâr marjı aynı satırda bulunabilir; bu veri saklama açısından normaldir. Ancak **2020Q2 sonucu henüz yayımlanmadan tahmin edilirken bu iki değer girdi olamaz.**
+
+Eğitim veri üreticisi ayrı kurulmalı: `target_period=q`, sabit `forecast_origin=t0`, yalnız `available_at <= t0` girdiler, hangi geçmiş dönemin/sürümün kullanıldığı ve hedef yayım zamanı. Ölçekleme için de hedef dönemin varlığı yerine o tarihte açıklanmış geçmiş pozitif varlık kullanılmalı.
+
+### F. Makro/risk katmanı henüz yayın zamanı güvenli değil
+
+[Aylık eşleme](https://github.com/Toricicim/Bilanco_Tahmini/blob/91a7d0e/scripts/parse_and_build_dataset.py#L905) çeyreğin son ayını kullanıyor; `available_at` veya tarihsel veri sürümü yok. Son ayın enflasyon/sanayi üretimi/endeks sonucu ayın son gününde otomatik olarak biliniyor sayılamaz.
+
+- [GPR'nin resmî kaynağı](https://www.matteoiacoviello.com/gpr.htm) aylık güncellemenin ay başında yapıldığını, eski sürümlerin arşivlendiğini ve geçmiş değerlerin revize edilebildiğini açıklıyor. Güncel yöntem 2021'de değişmiş; bugünkü seriyle 2010–2020 analizi, o yıllarda fiilen mevcut endeksle test yapıldığını göstermiyor.
+- [OFR'nin resmî kaynağı](https://www.financialresearch.gov/financial-stress-index/) verinin **iki iş günü önceye ait** olduğunu belirtiyor. Parser'ın [aynı gün ham FSI'yi ileri doldurması](https://github.com/Toricicim/Bilanco_Tahmini/blob/91a7d0e/scripts/parse_and_build_dataset.py#L939) bu gecikmeyi uygulamıyor. Ayrı ortalamada kullanılan iki satır kaydırma da otomatik olarak iki iş günü değil.
+- Birleşik günlük tabloda **7.332 satırın 427'si hafta sonu**. FX/FSI takvimleri ayrı ele alınmalı. Çeyrek sonu anlık görüntülerinde 63 satırlık “90 gün” penceresi ortalama **79,7 takvim günü**, 60 satırlık FSI penceresi ortalama **52,7 dolu gözlem** içeriyor. Bu sayılar JSON'daki açık satır penceresi hesabıdır; istenen pencere tanımı ayrıca kararlaştırılmalı.
+- `M03_Faiz_Orani` için indirilen `OECD/MEI/TUR.IRSTCI01.ST.M`, [yerel kaynak metadatasında](https://github.com/Toricicim/Bilanco_Tahmini/blob/91a7d0e/data/external/oecd_ir.json) **gecelik call money/interbank rate** olarak tanımlı. Değişken sözlüğündeki ticari kredi faiziyle aynı ölçü değil. Ya gerçek seri çekilmeli ya da ayrı proxy adıyla tanımlanmalı.
+- GEPU/TÜFE/ÜFE/sanayi üretimi için yayım takvimi ve vintage ayrıca gerekli. Tek bir tahmini sabit gecikme kullanmak gerçek point-in-time veri oluşturmaz.
+
+İlk finansal temel kıyasına bu katmanı yetiştirmek zorunlu değil. Sonraki deneyde yayın zamanı ve sürümü doğrulanan makro/riskler eklenerek katkıları ölçülmeli; tarihsel vintage bulunamayan deneyler açıkça **geriye dönük revize seri deneyi** diye etiketlenmeli.
+
+## 3. Değişken listemizle uyum ve eksik katmanlar
+
+| Aday aile | Mevcut durum | Sonraki işlem |
+|---|---|---|
+| F01–F14 finansal geçmiş | Ana tutarların çoğu ve bazı oranlar var | Kalite, yayın zamanı ve q−1/q−4 girdileri hazırlanmalı |
+| M01–M06 makro | Sayısal değerler var | M03 ölçüsü, pencereler, yayın/vintage düzeltilmeli |
+| R01/R02/R03 ve R04 | GPR, GEPU, OFR FSI, tehdit/eylem ayrımı var | Tarihsel kullanılabilirlik ve indeks sürümü doğrulanmalı |
+| C01 sektör | Grup ve KAP etiketleri var | Döneme ait faaliyet/etiket olup olmadığı doğrulanmalı |
+| X02/X03 | Faiz×borç ve FSI×kısa borç terimleri var | Aynı dönem borcu yerine t0'da bilinen borç kullanılmalı |
+| F15–F20, M07/M08 | Bazı kısmi tutarlar dışında yeterli ayrıntı yok | Amortisman/capex, Ar-Ge, kontrat, FX pozisyonu; ilgili emtia/sektör göstergeleri |
+| C02–C10, E01, kalan X aileleri | Şirket maruziyeti/olay bağlamı henüz yok | Faaliyet ve coğrafi gelir karması, ihracat, ithal girdi, enerji rolü, sipariş/ifa ve müşteri yoğunlaşması |
+
+**Kod numarası tek başına eşleme değil:** sözlükte F01 “şirket ölçeği”, CSV'de `F01_hasilat_qoq_buyume`; sözlükte F07 “vergi”, CSV'de `F07_finansman_geliri`. Girdiler otomatik olarak yalnız ID önekinden bağlanmamalı. Açık bir sözlük–ham kolon–dönüşüm–birim eşleme tablosu gerekli. [Kanonik kayıt](degiskenler.json) bu incelemeyle otomatik `validated` yapılmadı.
+
+“Aynı olay neden iki şirketi farklı etkiliyor?” sorusu için endeks + sektör etiketi tek başına yeterli temsil değil. İkinci aşamada öncelik: **yurt dışı gelir/ihracat payı, net döviz pozisyonu, enerji/emtia üretici–tüketici rolü, faaliyet karması ve uygun sektörlerde sipariş/ifa görünürlüğü**. Bunlar şirkete özel işaret ezberletmeden farklı gelir, maliyet ve nakit kanallarını temsil eder. Savaşta savunma hissesi yükselmesi, gelecek çeyrek muhasebe kârının artmasıyla aynı hedef değildir; yön önceden sabitlenmemeli.
+
+## 4. İlk demo için somut deney
+
+**Görev önerisi:** çeyrek sonu gün sonunda, henüz yayımlanmamış o çeyreğin ilk açıklanacak sonuçlarını tahmin et. Örneğin 30 Haziran'da Q2 hedeflenir; yalnız o tarihe kadar açıklanmış raporlar girdi olur. Üründeki farklı sorgu tarihleri sonraki görev tanımıdır.
+
+| Karar | İlk demo |
+|---|---|
+| Hedefler | Temizlenmiş **tek çeyrek hasılat, tek çeyrek net kâr, toplam varlık, toplam özkaynak** |
+| Model düzeni | Her hedef için şirketlerin birlikte kullanıldığı bir model; her şirkete ayrı 44 satırlık model değil |
+| Girdiler | Bilinebilen q−1/q−4 tutar ve oranları, geçmiş pozitif varlık ölçeği, çeyrek, doğrulanmış sektör; eksikliği ve gözlem yaşı |
+| Temel kıyas | Geçen yıl aynı çeyrek; son bilinen değer. Karşılaştırmalar aynı uygun gözlemlerde |
+| ML | Önce Ridge, ardından sınırlı karmaşıklıkta Random Forest; küçük veri için iki anlaşılır başlangıç adayı |
+| Deney sırası | E0 finansal geçmiş → E1 zaman güvenli makro/risk → E2 şirket maruziyetleri ve etkileşimler |
+| Örnek tarih blokları | 2011–2016 eğitim, 2017–2018 doğrulama, 2019–2020 test |
+| Zaman kontrolü | Aynı çeyrek tüm şirketleriyle aynı blokta; her fit anında eğitim/ayar etiketleri de açıklanmış olmalı; sonradan açıklanan etiketler çıkarılmalı |
+| Dönüşümler | Eksik girdi doldurma ve ölçekleme yalnız eğitimde öğrenilir; eksik hedef doldurulmaz |
+| Ölçüm | Kalem bazında MAE, geçmiş varlığa göre ölçeklenmiş hata, temel tahmine göre kazanım; şirket/sektör/çeyrek kırılımları |
+| Sınırlar | Sıfır/negatif kâr nedeniyle MAPE ana metrik değil; yalnız 8 ortak test çeyreğinden geniş genelleme yapılmaz |
+
+Tahminler önce özgün TL birimine döndürülmeli. Hasılat/varlık/özkaynak ve net kârın işaret/kapsam kuralları tanımlanmalı; dört kalemlik demo tam üç tablo muhasebe tutarlılığı sağladığını iddia etmemeli. Finansal tablo tutarlılığı daha fazla kalem çıktığında ayrıca sınanır.
+
+İlk demoda Forma benzeri büyük Transformer veya 17 hedefli karmaşık sistem önerilmiyor. Bu bir başarı karşılaştırması değil; 30 şirket/44 ortak dönem ve mevcut veri sorunları dikkate alınarak seçilmiş başlangıç kapsamı. Dönüşümleri eğitim verisinde öğrenip testte aynı şekilde uygulama ilkesi için [resmî scikit-learn rehberi](https://scikit-learn.org/stable/common_pitfalls.html) kullanılabilir.
+
+## 5. Başlama kapısı ve görev sırası
+
+1. **Kanonik veri ve izlenebilirlik:** tek çıktı, dosya/hash/kod/ortam manifestosu; veri sözlüğü eşlemesi. Kopyalar sessizce farklı kalmamalı.
+2. **Finansal kalite:** KAREL ve ölçek şüphelilerini raporla doğrula; etkilenen türevleri işaretle; toplam/alt toplam ve eksik–sıfır ayrımını düzelt. Kullanılacak hedef/özelliklerin doğrulanmamış değerlerini maskele.
+3. **Sürüm ve yayın zamanı:** ilk rapor ve düzeltmeleri ayrı sakla; bilinmeyen zamanı uydurma; hedef sürümünü tanımla. PIT rekonstrüksiyonu yapılamayan kapsamı başarı iddiasından ayır.
+4. **Eğitim tablosu:** q/t0, geçmiş kaynak dönemleri, özellik/etiket yayın zamanları ve kalite maskeleri; q−1/q−4 ve ileriye bakma kontrolleri. Sıfır payda/sonsuz değer kontrolü.
+5. **Dört hedefli kıyas ve ML:** tarih bloklarını sabitle, test dönemine bakarak veri temizliği/parametre seçimi yapma; sonuçları temel tahminle aynı satırlarda karşılaştır.
+6. **Genişletme:** yayın zamanı düzeltilmiş üç risk endeksi, makrolar ve şirket profilleri; sonra güvenilir nakit akışları/diğer hedefler ve yakın dönemler.
+
+Bir–üç tamamlanmadan altyapı yazılabilir; mevcut veriden güvenilir doğruluk skoru üretildiği söylenemez. Makrosuz ilk modelin de finansal rapor sürümü/yayın zamanı koşullarını sağlaması gerekir. Düzeltme çalışması, yeni eğitim tablosu ve model eğitimi bu denetimde yapılmadı.
+
+## 6. Denetimi yeniden çalıştırma
+
+```bash
+python3 scripts/audit_dataset.py
+# Ayrı bir JSON raporu kaydetmek için:
+python3 scripts/audit_dataset.py --output /tmp/bilanco-veri-denetimi.json
+```
+
+Betik Python standart kütüphanesini kullanır; veri indirmez, CSV/XLS değiştirmez, model eğitmez. Panel/doluluk, iki kopya farkı, sonlu sayı, finansal eşitlik, büyüklük sıçraması, çeyrek–YTD uzlaşması, tarih uygunluğu ve günlük pencere kontrollerini tekrarlar. Ham XLS hücre incelemesi, KAP katalog örneğinin anlamı, parser satır eşlemesi ve resmî yayın kurallarının doğrulanması ayrıca yapılan incelemedir; bu betik bunların yerine geçmez.
+
+### 🌐 Community Wisdom
+
+Bulunan iki ilgili DEV yazısı aynı veri sağlayıcısının yazarından; bağımsız görüş birliği sayılmamalı. Yorum uç noktaları iki yazı için boş sonuç verdi. Teknik kararların ana kanıtı yerel kaynak/kod incelemesi ve yukarıdaki resmî kaynaklardır.
+
+- 🗂️ [How to Build a Point-in-Time Fundamentals Database from SEC EDGAR (and When Not To)](https://dev.to/tradevodata/how-to-build-a-point-in-time-fundamentals-database-from-sec-edgar-and-when-not-to-2gn6) [@tradevodata](https://dev.to/tradevodata) — Yazar kendi revizyon algılama hatasını da anlatıyor; burada ilk ve düzeltilmiş tutarları ayrı saklama gereğini somutlaştırıyor. 🔗 [Read Full Discussion on DEV](https://dev.to/tradevodata/how-to-build-a-point-in-time-fundamentals-database-from-sec-edgar-and-when-not-to-2gn6)
+- 🔍 [How to Detect Lookahead Bias in a Backtest: A Practical Checklist](https://dev.to/tradevodata/how-to-detect-lookahead-bias-in-a-backtest-a-practical-checklist-2cb6) [@tradevodata](https://dev.to/tradevodata) — Dönem sonunu yayın zamanı sanan eşlemeleri denetleme önerisi yararlı; tek başına sabit gecikme testi doğruluk kanıtı sayılmamalı. 🔗 [Read Full Discussion on DEV](https://dev.to/tradevodata/how-to-detect-lookahead-bias-in-a-backtest-a-practical-checklist-2cb6)
+
+**Sonraki iş:** önce kanonik, finansal kalitesi ve tarihsel kullanılabilirliği doğrulanmış eğitim tablosu; ardından dört kalemli finansal temel kıyas ve küçük ML demosu.

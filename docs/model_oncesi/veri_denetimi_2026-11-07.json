@@ -1,0 +1,2714 @@
+{
+  "audit_schema_version": 1,
+  "generated_at_utc": "2026-11-07T14:42:44.934767+00:00",
+  "repository_head_at_audit": "91a7d0eba593dd90b2d37a4e73bdfbb4756b421c",
+  "audit_script_sha256": "4a7374fdf0eb3acf001182b4dbb394d51d618588baa708c0018de0faa4a8f42a",
+  "source_sha256": {
+    "scripts/parse_and_build_dataset.py": "085b2f2165ceeb7fc98289c6e62d411741b9132e90edbf8756371ba025398d10",
+    "scripts/fetch_external_macro_and_risk.py": "b7ee54fe73b08500b38784e5a8dc9d0bd964b548c7be4bcb99fac1fe90027131",
+    "data/kap_fr_catalog_2010_2020.json": "cb95515f1411c1101f6f15899d2f9e9c39aaaab4328ef45d6928bf60bcc9ac3d",
+    "docs/model_oncesi/degiskenler.json": "f0d5241862214a27e5fab03191af29abc4e5d4cf5f179fd053e1079f629d48d0"
+  },
+  "inputs": [
+    {
+      "path": "bist_bilanco_tahmini_2010_2020.csv",
+      "sha256": "5adf6fe63046e0d2bc868e991cc9ffbcff9fcff449f113841bd179d48111fb2f",
+      "bytes": 1609104,
+      "rows": 1320,
+      "columns": 92,
+      "duplicate_company_quarters": 0,
+      "companies": [
+        "AEFES",
+        "AKENR",
+        "AKSEN",
+        "ALCTL",
+        "ARCLK",
+        "ASELS",
+        "AYGAZ",
+        "BIMAS",
+        "BRSAN",
+        "CCOLA",
+        "CEMTS",
+        "CLEBI",
+        "EREGL",
+        "FROTO",
+        "GSDDE",
+        "KAREL",
+        "KRDMD",
+        "LOGO",
+        "MGROS",
+        "NETAS",
+        "OTKAR",
+        "RYSAS",
+        "SARKY",
+        "TAVHL",
+        "THYAO",
+        "TOASO",
+        "TTRAK",
+        "TUPRS",
+        "ULKER",
+        "ZOREN"
+      ],
+      "periods": [
+        "2010Q1",
+        "2010Q2",
+        "2010Q3",
+        "2010Q4",
+        "2011Q1",
+        "2011Q2",
+        "2011Q3",
+        "2011Q4",
+        "2012Q1",
+        "2012Q2",
+        "2012Q3",
+        "2012Q4",
+        "2013Q1",
+        "2013Q2",
+        "2013Q3",
+        "2013Q4",
+        "2014Q1",
+        "2014Q2",
+        "2014Q3",
+        "2014Q4",
+        "2015Q1",
+        "2015Q2",
+        "2015Q3",
+        "2015Q4",
+        "2016Q1",
+        "2016Q2",
+        "2016Q3",
+        "2016Q4",
+        "2017Q1",
+        "2017Q2",
+        "2017Q3",
+        "2017Q4",
+        "2018Q1",
+        "2018Q2",
+        "2018Q3",
+        "2018Q4",
+        "2019Q1",
+        "2019Q2",
+        "2019Q3",
+        "2019Q4",
+        "2020Q1",
+        "2020Q2",
+        "2020Q3",
+        "2020Q4"
+      ],
+      "sector_company_counts": {
+        "Demir-Çelik ve Ana Metal": 5,
+        "Enerji ve Rafineri": 5,
+        "Otomotiv ve Sanayi": 5,
+        "Perakende ve Gıda": 5,
+        "Teknoloji ve Savunma": 5,
+        "Ulaştırma ve Lojistik": 5
+      },
+      "missing_by_column": {
+        "ticker": 0,
+        "company_name": 0,
+        "sector_group": 0,
+        "C01_kap_main_sector": 0,
+        "C01_kap_sub_sector": 0,
+        "year": 0,
+        "quarter": 0,
+        "observation_period": 0,
+        "period_end_date": 0,
+        "first_published_at": 38,
+        "disclosure_index": 50,
+        "consolidation": 0,
+        "original_unit": 0,
+        "currency": 0,
+        "T01_hasilat_ytd": 0,
+        "T02_satislarin_maliyeti_ytd": 1,
+        "T03_brut_kar_ytd": 0,
+        "T04_esas_faaliyet_kari_ytd": 1,
+        "T05_finansman_gideri_ytd": 11,
+        "F07_finansman_geliri_ytd": 107,
+        "T06_vergi_gideri_geliri_ytd": 0,
+        "T07_donem_net_kari_ytd": 0,
+        "T07_ana_ortaklik_net_kari_ytd": 0,
+        "T08_nakit_ve_nakit_benzerleri": 0,
+        "F10_kisa_vadeli_ticari_alacaklar": 129,
+        "F10_uzun_vadeli_ticari_alacaklar": 659,
+        "T09_ticari_alacaklar": 38,
+        "T10_stoklar": 27,
+        "donen_varliklar": 8,
+        "duran_varliklar": 8,
+        "T11_toplam_varliklar": 0,
+        "F13_kisa_vadeli_finansal_borclar": 23,
+        "F13_uzun_vadeli_finansal_borclar": 133,
+        "T12_finansal_borclar": 17,
+        "kisa_vadeli_ticari_borclar": 143,
+        "uzun_vadeli_ticari_borclar": 815,
+        "F12_ticari_borclar": 98,
+        "kisa_vadeli_yukumlulukler": 8,
+        "uzun_vadeli_yukumlulukler": 8,
+        "T13_toplam_yukumlulukler": 0,
+        "T14_toplam_ozkaynaklar": 0,
+        "T14_ana_ortakliga_ait_ozkaynaklar": 0,
+        "T15_isletme_nakit_akisi_ytd": 0,
+        "T16_yatirim_nakit_akisi_ytd": 52,
+        "T17_finansman_nakit_akisi_ytd": 123,
+        "T01_hasilat_ceyrek": 0,
+        "T02_satislarin_maliyeti_ceyrek": 1,
+        "T03_brut_kar_ceyrek": 0,
+        "T04_esas_faaliyet_kari_ceyrek": 1,
+        "T05_finansman_gideri_ceyrek": 16,
+        "F07_finansman_geliri_ceyrek": 110,
+        "T06_vergi_gideri_geliri_ceyrek": 0,
+        "T07_donem_net_kari_ceyrek": 0,
+        "T07_ana_ortaklik_net_kari_ceyrek": 0,
+        "T15_isletme_nakit_akisi_ceyrek": 0,
+        "T16_yatirim_nakit_akisi_ceyrek": 65,
+        "T17_finansman_nakit_akisi_ceyrek": 151,
+        "F07_net_finansman_ytd": 0,
+        "F07_net_finansman_ceyrek": 0,
+        "F01_hasilat_qoq_buyume": 37,
+        "F01_hasilat_yoy_buyume": 125,
+        "F03_brut_kar_marji": 11,
+        "F04_esas_faaliyet_marji": 12,
+        "F05_net_kar_marji": 11,
+        "F06_cfo_aktif_orani": 0,
+        "F06_tahakkuk_aktif_orani": 0,
+        "F09_nakit_aktif_orani": 0,
+        "F10_alacak_satis_orani": 49,
+        "F11_stok_maliyet_orani": 41,
+        "F12_ticari_borc_maliyet_orani": 112,
+        "F13_finansal_borc_aktif_orani": 17,
+        "F13_kisa_finansal_borc_aktif_orani": 23,
+        "F13_net_borc": 0,
+        "F14_ozkaynak_aktif_orani": 0,
+        "F14_borc_ozkaynak_orani": 0,
+        "M03_Faiz_Orani": 0,
+        "M03_Faiz_3Aylik_Degisim": 0,
+        "M04_TUFE_YoY": 0,
+        "M05_YIUFE_YoY": 0,
+        "M06_SanayiUretimi_YoY": 0,
+        "R01_GPR": 0,
+        "R04_GPRT": 0,
+        "R04_GPRA": 0,
+        "R02_GEPU_ppp": 0,
+        "M01_USDTRY_seviye": 0,
+        "M01_USDTRY_90g_degisim_pct": 0,
+        "M02_EURTRY_seviye": 0,
+        "M02_EURTRY_90g_degisim_pct": 0,
+        "R03_OFR_FSI": 0,
+        "R03_OFR_FSI_60d_mean": 0,
+        "X02_faiz_degisimi_x_finansal_borc_aktif": 17,
+        "X03_ofr_fsi_x_kisa_borc_aktif": 23
+      },
+      "target_finite_counts": {
+        "T01_hasilat_ceyrek": 1320,
+        "T02_satislarin_maliyeti_ceyrek": 1319,
+        "T03_brut_kar_ceyrek": 1320,
+        "T04_esas_faaliyet_kari_ceyrek": 1319,
+        "T05_finansman_gideri_ceyrek": 1304,
+        "T06_vergi_gideri_geliri_ceyrek": 1320,
+        "T07_donem_net_kari_ceyrek": 1320,
+        "T08_nakit_ve_nakit_benzerleri": 1320,
+        "T09_ticari_alacaklar": 1282,
+        "T10_stoklar": 1293,
+        "T11_toplam_varliklar": 1320,
+        "T12_finansal_borclar": 1303,
+        "T13_toplam_yukumlulukler": 1320,
+        "T14_toplam_ozkaynaklar": 1320,
+        "T15_isletme_nakit_akisi_ceyrek": 1320,
+        "T16_yatirim_nakit_akisi_ceyrek": 1255,
+        "T17_finansman_nakit_akisi_ceyrek": 1169
+      },
+      "nonfinite_or_nonnumeric_cells": [
+        {
+          "ticker": "GSDDE",
+          "period": "2013Q3",
+          "column": "F01_hasilat_qoq_buyume",
+          "value": "inf"
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2016Q2",
+          "column": "F01_hasilat_qoq_buyume",
+          "value": "inf"
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2016Q2",
+          "column": "F01_hasilat_yoy_buyume",
+          "value": "inf"
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2016Q3",
+          "column": "F01_hasilat_yoy_buyume",
+          "value": "inf"
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2016Q4",
+          "column": "F01_hasilat_yoy_buyume",
+          "value": "inf"
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2017Q1",
+          "column": "F01_hasilat_yoy_buyume",
+          "value": "inf"
+        },
+        {
+          "ticker": "OTKAR",
+          "period": "2011Q1",
+          "column": "F01_hasilat_qoq_buyume",
+          "value": "inf"
+        },
+        {
+          "ticker": "OTKAR",
+          "period": "2011Q4",
+          "column": "F01_hasilat_yoy_buyume",
+          "value": "inf"
+        },
+        {
+          "ticker": "OTKAR",
+          "period": "2013Q1",
+          "column": "F01_hasilat_qoq_buyume",
+          "value": "inf"
+        },
+        {
+          "ticker": "OTKAR",
+          "period": "2013Q4",
+          "column": "F01_hasilat_yoy_buyume",
+          "value": "inf"
+        }
+      ],
+      "gross_identity_flags_tolerance_1_try": [
+        {
+          "ticker": "ALCTL",
+          "period": "2010Q3",
+          "residual_try": 100000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2013Q2",
+          "residual_try": -2054000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2013Q3",
+          "residual_try": 1616000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2013Q4",
+          "residual_try": 1307000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2014Q1",
+          "residual_try": -120000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2014Q2",
+          "residual_try": -764000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2014Q3",
+          "residual_try": -1119000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2014Q4",
+          "residual_try": -2027000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2015Q1",
+          "residual_try": -1273000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2015Q2",
+          "residual_try": 712000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2015Q3",
+          "residual_try": 1610000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2015Q4",
+          "residual_try": 2677000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2016Q1",
+          "residual_try": 3606000.0
+        },
+        {
+          "ticker": "RYSAS",
+          "period": "2011Q1",
+          "residual_try": 96238395.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2010Q1",
+          "residual_try": -21673000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2010Q2",
+          "residual_try": -29613000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2010Q3",
+          "residual_try": -41007000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2010Q4",
+          "residual_try": -52766000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2011Q1",
+          "residual_try": -12457000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2011Q2",
+          "residual_try": -25440000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2011Q3",
+          "residual_try": -39914000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2011Q4",
+          "residual_try": -58593000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2012Q1",
+          "residual_try": -17621000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2012Q2",
+          "residual_try": -31080000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2012Q3",
+          "residual_try": -48944000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2012Q4",
+          "residual_try": -65865000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2013Q1",
+          "residual_try": -14921000.0
+        }
+      ],
+      "balance_identity_flags_tolerance_1_try": [],
+      "asset_jumps_over_20x": [
+        {
+          "ticker": "THYAO",
+          "period": "2015Q4",
+          "previous_period": "2015Q3",
+          "current_assets_try": 47638.0,
+          "previous_assets_try": 49915110600.0,
+          "current_to_previous_ratio": 9.543803354810157e-07
+        },
+        {
+          "ticker": "THYAO",
+          "period": "2016Q2",
+          "previous_period": "2016Q1",
+          "current_assets_try": 52416000000.0,
+          "previous_assets_try": 48349.0,
+          "current_to_previous_ratio": 1084117.561893731
+        },
+        {
+          "ticker": "TOASO",
+          "period": "2013Q1",
+          "previous_period": "2012Q4",
+          "current_assets_try": 6266179.0,
+          "previous_assets_try": 6061534000.0,
+          "current_to_previous_ratio": 0.0010337612558141223
+        },
+        {
+          "ticker": "TOASO",
+          "period": "2013Q2",
+          "previous_period": "2013Q1",
+          "current_assets_try": 5937562000.0,
+          "previous_assets_try": 6266179.0,
+          "current_to_previous_ratio": 947.5570359544469
+        },
+        {
+          "ticker": "TOASO",
+          "period": "2014Q3",
+          "previous_period": "2014Q2",
+          "current_assets_try": 6550101.0,
+          "previous_assets_try": 6342998000.0,
+          "current_to_previous_ratio": 0.0010326506487941508
+        },
+        {
+          "ticker": "TOASO",
+          "period": "2014Q4",
+          "previous_period": "2014Q3",
+          "current_assets_try": 7124284000.0,
+          "previous_assets_try": 6550101.0,
+          "current_to_previous_ratio": 1087.6601750110417
+        }
+      ],
+      "cash_flow_over_10x_assets": [
+        {
+          "ticker": "KAREL",
+          "period": "2012Q1",
+          "column": "T15_isletme_nakit_akisi_ceyrek",
+          "value_try": 115282692945205.0,
+          "assets_try": 219501352.0,
+          "absolute_flow_to_assets": 525202.6554497259
+        },
+        {
+          "ticker": "KAREL",
+          "period": "2012Q1",
+          "column": "T16_yatirim_nakit_akisi_ceyrek",
+          "value_try": -477891329452055.0,
+          "assets_try": 219501352.0,
+          "absolute_flow_to_assets": 2177168.04519753
+        },
+        {
+          "ticker": "KAREL",
+          "period": "2012Q2",
+          "column": "T15_isletme_nakit_akisi_ceyrek",
+          "value_try": -115282670177637.0,
+          "assets_try": 213324343.0,
+          "absolute_flow_to_assets": 540410.2905294639
+        },
+        {
+          "ticker": "KAREL",
+          "period": "2012Q2",
+          "column": "T16_yatirim_nakit_akisi_ceyrek",
+          "value_try": 477891319747188.0,
+          "assets_try": 213324343.0,
+          "absolute_flow_to_assets": 2240209.9686634825
+        },
+        {
+          "ticker": "THYAO",
+          "period": "2015Q4",
+          "column": "T15_isletme_nakit_akisi_ceyrek",
+          "value_try": -4062540234.0,
+          "assets_try": 47638.0,
+          "absolute_flow_to_assets": 85279.4037113229
+        },
+        {
+          "ticker": "THYAO",
+          "period": "2015Q4",
+          "column": "T16_yatirim_nakit_akisi_ceyrek",
+          "value_try": 568747699.0,
+          "assets_try": 47638.0,
+          "absolute_flow_to_assets": 11938.94997690919
+        },
+        {
+          "ticker": "THYAO",
+          "period": "2015Q4",
+          "column": "T17_finansman_nakit_akisi_ceyrek",
+          "value_try": 1447735173.0,
+          "assets_try": 47638.0,
+          "absolute_flow_to_assets": 30390.343276376003
+        },
+        {
+          "ticker": "TOASO",
+          "period": "2014Q3",
+          "column": "T15_isletme_nakit_akisi_ceyrek",
+          "value_try": -359370390.0,
+          "assets_try": 6550101.0,
+          "absolute_flow_to_assets": 54.86486238914484
+        },
+        {
+          "ticker": "TOASO",
+          "period": "2014Q3",
+          "column": "T17_finansman_nakit_akisi_ceyrek",
+          "value_try": -101527814.0,
+          "assets_try": 6550101.0,
+          "absolute_flow_to_assets": 15.50019060774788
+        }
+      ],
+      "annual_quarter_reconciliation_flags_tolerance_1_try": [
+        {
+          "ticker": "AEFES",
+          "year": 2011,
+          "column": "T07_donem_net_kari",
+          "residual_try": -2957000.0,
+          "absolute_relative_residual": 0.00822595362086616
+        },
+        {
+          "ticker": "AKENR",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": 4668551.0,
+          "absolute_relative_residual": 0.1819066980209578
+        },
+        {
+          "ticker": "AKSEN",
+          "year": 2013,
+          "column": "T07_donem_net_kari",
+          "residual_try": 148536.0,
+          "absolute_relative_residual": 0.0011143581798486297
+        },
+        {
+          "ticker": "AKSEN",
+          "year": 2016,
+          "column": "T01_hasilat",
+          "residual_try": 83692202.0,
+          "absolute_relative_residual": 0.026333192859771298
+        },
+        {
+          "ticker": "AKSEN",
+          "year": 2016,
+          "column": "T07_donem_net_kari",
+          "residual_try": -2.0,
+          "absolute_relative_residual": 5.511822170956887e-09
+        },
+        {
+          "ticker": "ALCTL",
+          "year": 2013,
+          "column": "T07_donem_net_kari",
+          "residual_try": -73897.0,
+          "absolute_relative_residual": 0.003932846396315343
+        },
+        {
+          "ticker": "ASELS",
+          "year": 2016,
+          "column": "T01_hasilat",
+          "residual_try": 1015.0,
+          "absolute_relative_residual": 2.6936538047130184e-07
+        },
+        {
+          "ticker": "ASELS",
+          "year": 2016,
+          "column": "T07_donem_net_kari",
+          "residual_try": -360.0,
+          "absolute_relative_residual": 4.527157284761966e-07
+        },
+        {
+          "ticker": "ASELS",
+          "year": 2017,
+          "column": "T01_hasilat",
+          "residual_try": 1000.0,
+          "absolute_relative_residual": 1.8655745344598667e-07
+        },
+        {
+          "ticker": "ASELS",
+          "year": 2018,
+          "column": "T01_hasilat",
+          "residual_try": 1000.0,
+          "absolute_relative_residual": 1.1100607469643169e-07
+        },
+        {
+          "ticker": "ASELS",
+          "year": 2018,
+          "column": "T07_donem_net_kari",
+          "residual_try": -1000.0,
+          "absolute_relative_residual": 4.311558382596481e-07
+        },
+        {
+          "ticker": "ASELS",
+          "year": 2019,
+          "column": "T07_donem_net_kari",
+          "residual_try": -1000.0,
+          "absolute_relative_residual": 2.9826947035991877e-07
+        },
+        {
+          "ticker": "ASELS",
+          "year": 2020,
+          "column": "T07_donem_net_kari",
+          "residual_try": 1000.0,
+          "absolute_relative_residual": 2.2415161974201942e-07
+        },
+        {
+          "ticker": "AYGAZ",
+          "year": 2010,
+          "column": "T01_hasilat",
+          "residual_try": 6456000.0,
+          "absolute_relative_residual": 0.0013860954190147558
+        },
+        {
+          "ticker": "AYGAZ",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": -1000.0,
+          "absolute_relative_residual": 4.163942754115017e-06
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2010,
+          "column": "T01_hasilat",
+          "residual_try": -1327234.0,
+          "absolute_relative_residual": 0.0013528285061258352
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": 3883.0,
+          "absolute_relative_residual": 0.00028857214901975765
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2011,
+          "column": "T01_hasilat",
+          "residual_try": -19872739.0,
+          "absolute_relative_residual": 0.014927129110853468
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2011,
+          "column": "T07_donem_net_kari",
+          "residual_try": -1272010.0,
+          "absolute_relative_residual": 0.024173305119709942
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2012,
+          "column": "T01_hasilat",
+          "residual_try": -994615.0,
+          "absolute_relative_residual": 0.0006974143327938614
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2012,
+          "column": "T07_donem_net_kari",
+          "residual_try": -53458.0,
+          "absolute_relative_residual": 0.001354227177144127
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2013,
+          "column": "T01_hasilat",
+          "residual_try": -19266827.0,
+          "absolute_relative_residual": 0.016079812731519157
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2013,
+          "column": "T07_donem_net_kari",
+          "residual_try": -261803.0,
+          "absolute_relative_residual": 0.007133027059882493
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2014,
+          "column": "T01_hasilat",
+          "residual_try": 7842454.0,
+          "absolute_relative_residual": 0.0047860436306107965
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2014,
+          "column": "T07_donem_net_kari",
+          "residual_try": -176969.0,
+          "absolute_relative_residual": 0.007073577331360858
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2015,
+          "column": "T01_hasilat",
+          "residual_try": -48714110.0,
+          "absolute_relative_residual": 0.024995371731058622
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2015,
+          "column": "T07_donem_net_kari",
+          "residual_try": 99614.0,
+          "absolute_relative_residual": 0.005208111130908912
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2016,
+          "column": "T01_hasilat",
+          "residual_try": -157493.0,
+          "absolute_relative_residual": 8.00948550756848e-05
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2016,
+          "column": "T07_donem_net_kari",
+          "residual_try": -152734.0,
+          "absolute_relative_residual": 0.0014961860548806224
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2017,
+          "column": "T01_hasilat",
+          "residual_try": 24015197.0,
+          "absolute_relative_residual": 0.008451272759999661
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2017,
+          "column": "T07_donem_net_kari",
+          "residual_try": 1586140.0,
+          "absolute_relative_residual": 0.0065117883777735365
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2018,
+          "column": "T01_hasilat",
+          "residual_try": -265027542.0,
+          "absolute_relative_residual": 0.05427416175322664
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2018,
+          "column": "T07_donem_net_kari",
+          "residual_try": -10280349.0,
+          "absolute_relative_residual": 0.03629757028782332
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2019,
+          "column": "T01_hasilat",
+          "residual_try": -61412354.0,
+          "absolute_relative_residual": 0.01342626487668583
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2019,
+          "column": "T07_donem_net_kari",
+          "residual_try": -886287.0,
+          "absolute_relative_residual": 0.013488952541065696
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2020,
+          "column": "T01_hasilat",
+          "residual_try": -141192875.0,
+          "absolute_relative_residual": 0.037863492751792266
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2020,
+          "column": "T07_donem_net_kari",
+          "residual_try": -161402.0,
+          "absolute_relative_residual": 0.01513916793762815
+        },
+        {
+          "ticker": "CCOLA",
+          "year": 2011,
+          "column": "T07_donem_net_kari",
+          "residual_try": -5884000.0,
+          "absolute_relative_residual": 0.0415909749563521
+        },
+        {
+          "ticker": "CLEBI",
+          "year": 2013,
+          "column": "T01_hasilat",
+          "residual_try": 344304349.0,
+          "absolute_relative_residual": 0.67793623529275
+        },
+        {
+          "ticker": "CLEBI",
+          "year": 2013,
+          "column": "T07_donem_net_kari",
+          "residual_try": 22805980.0,
+          "absolute_relative_residual": 42.073805408018124
+        },
+        {
+          "ticker": "CLEBI",
+          "year": 2018,
+          "column": "T01_hasilat",
+          "residual_try": 890112.0,
+          "absolute_relative_residual": 0.0006671153244663917
+        },
+        {
+          "ticker": "FROTO",
+          "year": 2017,
+          "column": "T01_hasilat",
+          "residual_try": -37.0,
+          "absolute_relative_residual": 1.4600677392508432e-09
+        },
+        {
+          "ticker": "FROTO",
+          "year": 2017,
+          "column": "T07_donem_net_kari",
+          "residual_try": -37.0,
+          "absolute_relative_residual": 2.483249808890437e-08
+        },
+        {
+          "ticker": "GSDDE",
+          "year": 2010,
+          "column": "T01_hasilat",
+          "residual_try": 1064238.0,
+          "absolute_relative_residual": 0.19096321550331957
+        },
+        {
+          "ticker": "GSDDE",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": -58.0,
+          "absolute_relative_residual": 1.1569918212647118e-05
+        },
+        {
+          "ticker": "GSDDE",
+          "year": 2013,
+          "column": "T01_hasilat",
+          "residual_try": -121000.0,
+          "absolute_relative_residual": 0.26535087719298245
+        },
+        {
+          "ticker": "GSDDE",
+          "year": 2014,
+          "column": "T01_hasilat",
+          "residual_try": 51000.0,
+          "absolute_relative_residual": 51000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "year": 2016,
+          "column": "T01_hasilat",
+          "residual_try": -5722000.0,
+          "absolute_relative_residual": 0.1730373775250998
+        },
+        {
+          "ticker": "KAREL",
+          "year": 2020,
+          "column": "T01_hasilat",
+          "residual_try": 6983032.0,
+          "absolute_relative_residual": 0.0068549989633419975
+        },
+        {
+          "ticker": "KRDMD",
+          "year": 2018,
+          "column": "T07_donem_net_kari",
+          "residual_try": -40841105.0,
+          "absolute_relative_residual": 0.05015737876416982
+        },
+        {
+          "ticker": "LOGO",
+          "year": 2010,
+          "column": "T01_hasilat",
+          "residual_try": 3925737.0,
+          "absolute_relative_residual": 0.18912723975545548
+        },
+        {
+          "ticker": "LOGO",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": -5790452.0,
+          "absolute_relative_residual": 13.747838267765141
+        },
+        {
+          "ticker": "LOGO",
+          "year": 2013,
+          "column": "T07_donem_net_kari",
+          "residual_try": 51540.0,
+          "absolute_relative_residual": 0.0026519253780923177
+        },
+        {
+          "ticker": "MGROS",
+          "year": 2011,
+          "column": "T01_hasilat",
+          "residual_try": 304327000.0,
+          "absolute_relative_residual": 0.05289780557027223
+        },
+        {
+          "ticker": "MGROS",
+          "year": 2011,
+          "column": "T07_donem_net_kari",
+          "residual_try": -5989000.0,
+          "absolute_relative_residual": 0.03670405098976528
+        },
+        {
+          "ticker": "MGROS",
+          "year": 2015,
+          "column": "T07_donem_net_kari",
+          "residual_try": 2896000.0,
+          "absolute_relative_residual": 0.007817455925583002
+        },
+        {
+          "ticker": "NETAS",
+          "year": 2011,
+          "column": "T07_donem_net_kari",
+          "residual_try": 600.0,
+          "absolute_relative_residual": 3.337661167313617e-05
+        },
+        {
+          "ticker": "NETAS",
+          "year": 2013,
+          "column": "T07_donem_net_kari",
+          "residual_try": -475533.0,
+          "absolute_relative_residual": 0.2164599174095438
+        },
+        {
+          "ticker": "OTKAR",
+          "year": 2010,
+          "column": "T01_hasilat",
+          "residual_try": -203256268.0,
+          "absolute_relative_residual": 0.39284430868215353
+        },
+        {
+          "ticker": "OTKAR",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": -13404931.0,
+          "absolute_relative_residual": 0.6451404574981396
+        },
+        {
+          "ticker": "OTKAR",
+          "year": 2011,
+          "column": "T07_donem_net_kari",
+          "residual_try": -1629749.0,
+          "absolute_relative_residual": 0.02971467476819531
+        },
+        {
+          "ticker": "OTKAR",
+          "year": 2012,
+          "column": "T01_hasilat",
+          "residual_try": -333808053.0,
+          "absolute_relative_residual": 0.3323152159528099
+        },
+        {
+          "ticker": "OTKAR",
+          "year": 2012,
+          "column": "T07_donem_net_kari",
+          "residual_try": -22983729.0,
+          "absolute_relative_residual": 0.3008933117713276
+        },
+        {
+          "ticker": "RYSAS",
+          "year": 2010,
+          "column": "T01_hasilat",
+          "residual_try": -300900.0,
+          "absolute_relative_residual": 0.0013473720998302512
+        },
+        {
+          "ticker": "RYSAS",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": 11144277.0,
+          "absolute_relative_residual": 0.7267948121548846
+        },
+        {
+          "ticker": "RYSAS",
+          "year": 2011,
+          "column": "T07_donem_net_kari",
+          "residual_try": 5.0,
+          "absolute_relative_residual": 7.09698325693904e-07
+        },
+        {
+          "ticker": "RYSAS",
+          "year": 2012,
+          "column": "T07_donem_net_kari",
+          "residual_try": 1309434.0,
+          "absolute_relative_residual": 0.23247061881312042
+        },
+        {
+          "ticker": "RYSAS",
+          "year": 2013,
+          "column": "T07_donem_net_kari",
+          "residual_try": -348.0,
+          "absolute_relative_residual": 9.38570911432727e-06
+        },
+        {
+          "ticker": "SARKY",
+          "year": 2012,
+          "column": "T01_hasilat",
+          "residual_try": -206011.0,
+          "absolute_relative_residual": 8.704603254192588e-05
+        },
+        {
+          "ticker": "TAVHL",
+          "year": 2019,
+          "column": "T01_hasilat",
+          "residual_try": 700178000.0,
+          "absolute_relative_residual": 0.14721361825523044
+        },
+        {
+          "ticker": "THYAO",
+          "year": 2010,
+          "column": "T01_hasilat",
+          "residual_try": 3513363882.0,
+          "absolute_relative_residual": 0.417126836714692
+        },
+        {
+          "ticker": "THYAO",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": 441988309.0,
+          "absolute_relative_residual": 1.5430216551606515
+        },
+        {
+          "ticker": "THYAO",
+          "year": 2011,
+          "column": "T07_donem_net_kari",
+          "residual_try": -9265796.0,
+          "absolute_relative_residual": 0.5004039611523305
+        },
+        {
+          "ticker": "THYAO",
+          "year": 2013,
+          "column": "T01_hasilat",
+          "residual_try": 34570620.0,
+          "absolute_relative_residual": 0.0018411363416456562
+        },
+        {
+          "ticker": "THYAO",
+          "year": 2016,
+          "column": "T01_hasilat",
+          "residual_try": -6430993569.0,
+          "absolute_relative_residual": 0.21823651313288991
+        },
+        {
+          "ticker": "THYAO",
+          "year": 2016,
+          "column": "T07_donem_net_kari",
+          "residual_try": 1237998762.0,
+          "absolute_relative_residual": 26.34039919148936
+        },
+        {
+          "ticker": "TOASO",
+          "year": 2013,
+          "column": "T01_hasilat",
+          "residual_try": -1709175114.0,
+          "absolute_relative_residual": 0.2428511345768955
+        },
+        {
+          "ticker": "TOASO",
+          "year": 2013,
+          "column": "T07_donem_net_kari",
+          "residual_try": -106957225.0,
+          "absolute_relative_residual": 0.24631865423987215
+        },
+        {
+          "ticker": "TOASO",
+          "year": 2014,
+          "column": "T01_hasilat",
+          "residual_try": 3492248256.0,
+          "absolute_relative_residual": 0.4693876386439855
+        },
+        {
+          "ticker": "TOASO",
+          "year": 2014,
+          "column": "T07_donem_net_kari",
+          "residual_try": 134394335.0,
+          "absolute_relative_residual": 0.23403943138559274
+        },
+        {
+          "ticker": "TTRAK",
+          "year": 2012,
+          "column": "T07_donem_net_kari",
+          "residual_try": -1000.0,
+          "absolute_relative_residual": 3.7285939325001083e-06
+        },
+        {
+          "ticker": "TUPRS",
+          "year": 2013,
+          "column": "T01_hasilat",
+          "residual_try": -14921000.0,
+          "absolute_relative_residual": 0.00036323201957075914
+        },
+        {
+          "ticker": "ULKER",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": 20001.0,
+          "absolute_relative_residual": 0.00010448610717174648
+        },
+        {
+          "ticker": "ULKER",
+          "year": 2016,
+          "column": "T01_hasilat",
+          "residual_try": -69404213.0,
+          "absolute_relative_residual": 0.017697540769098456
+        },
+        {
+          "ticker": "ULKER",
+          "year": 2016,
+          "column": "T07_donem_net_kari",
+          "residual_try": -8379728.0,
+          "absolute_relative_residual": 0.03462629841986973
+        },
+        {
+          "ticker": "ULKER",
+          "year": 2018,
+          "column": "T01_hasilat",
+          "residual_try": -23249000.0,
+          "absolute_relative_residual": 0.003903781171983985
+        },
+        {
+          "ticker": "ULKER",
+          "year": 2018,
+          "column": "T07_donem_net_kari",
+          "residual_try": 19512000.0,
+          "absolute_relative_residual": 0.024773336414341415
+        },
+        {
+          "ticker": "ZOREN",
+          "year": 2010,
+          "column": "T01_hasilat",
+          "residual_try": 51641000.0,
+          "absolute_relative_residual": 0.11898957594079208
+        },
+        {
+          "ticker": "ZOREN",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": 14555000.0,
+          "absolute_relative_residual": 0.19244754135209108
+        },
+        {
+          "ticker": "ZOREN",
+          "year": 2015,
+          "column": "T07_donem_net_kari",
+          "residual_try": -3214000.0,
+          "absolute_relative_residual": 0.012003510672069615
+        },
+        {
+          "ticker": "ZOREN",
+          "year": 2017,
+          "column": "T01_hasilat",
+          "residual_try": 15055000.0,
+          "absolute_relative_residual": 0.0038889850407755754
+        },
+        {
+          "ticker": "ZOREN",
+          "year": 2018,
+          "column": "T01_hasilat",
+          "residual_try": -427667000.0,
+          "absolute_relative_residual": 0.0635481914337501
+        },
+        {
+          "ticker": "ZOREN",
+          "year": 2018,
+          "column": "T07_donem_net_kari",
+          "residual_try": -11249000.0,
+          "absolute_relative_residual": 2.243070787637089
+        }
+      ],
+      "timing_only_candidate_count": 1142,
+      "lag1_published_after_forecast_origin": [
+        {
+          "ticker": "AKSEN",
+          "period": "2018Q2",
+          "lag1_period": "2018Q1",
+          "lag1_published_at": "2019-03-19 00:00:49",
+          "forecast_origin": "2018-06-30T23:59:59.999999"
+        },
+        {
+          "ticker": "AKSEN",
+          "period": "2018Q3",
+          "lag1_period": "2018Q2",
+          "lag1_published_at": "2019-03-18 23:59:36",
+          "forecast_origin": "2018-09-30T23:59:59.999999"
+        },
+        {
+          "ticker": "AKSEN",
+          "period": "2018Q4",
+          "lag1_period": "2018Q3",
+          "lag1_published_at": "2019-03-19 00:00:04",
+          "forecast_origin": "2018-12-31T23:59:59.999999"
+        },
+        {
+          "ticker": "CLEBI",
+          "period": "2011Q1",
+          "lag1_period": "2010Q4",
+          "lag1_published_at": "2011-04-01 20:25:58",
+          "forecast_origin": "2011-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "CLEBI",
+          "period": "2012Q1",
+          "lag1_period": "2011Q4",
+          "lag1_published_at": "2012-04-13 20:53:30",
+          "forecast_origin": "2012-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "CLEBI",
+          "period": "2013Q1",
+          "lag1_period": "2012Q4",
+          "lag1_published_at": "2013-04-03 18:57:06",
+          "forecast_origin": "2013-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "LOGO",
+          "period": "2011Q1",
+          "lag1_period": "2010Q4",
+          "lag1_published_at": "2011-04-08 16:01:50",
+          "forecast_origin": "2011-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "LOGO",
+          "period": "2013Q1",
+          "lag1_period": "2012Q4",
+          "lag1_published_at": "2013-04-04 13:50:32",
+          "forecast_origin": "2013-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "MGROS",
+          "period": "2012Q1",
+          "lag1_period": "2011Q4",
+          "lag1_published_at": "2012-04-10 10:08:27",
+          "forecast_origin": "2012-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "MGROS",
+          "period": "2013Q1",
+          "lag1_period": "2012Q4",
+          "lag1_published_at": "2013-04-03 18:07:56",
+          "forecast_origin": "2013-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "RYSAS",
+          "period": "2011Q1",
+          "lag1_period": "2010Q4",
+          "lag1_published_at": "2011-04-01 18:12:20",
+          "forecast_origin": "2011-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "RYSAS",
+          "period": "2012Q1",
+          "lag1_period": "2011Q4",
+          "lag1_published_at": "2012-04-13 16:57:16",
+          "forecast_origin": "2012-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "RYSAS",
+          "period": "2013Q1",
+          "lag1_period": "2012Q4",
+          "lag1_published_at": "2013-04-12 16:48:53",
+          "forecast_origin": "2013-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "SARKY",
+          "period": "2011Q1",
+          "lag1_period": "2010Q4",
+          "lag1_published_at": "2011-04-07 14:22:52",
+          "forecast_origin": "2011-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "SARKY",
+          "period": "2012Q1",
+          "lag1_period": "2011Q4",
+          "lag1_published_at": "2012-04-13 17:33:18",
+          "forecast_origin": "2012-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "SARKY",
+          "period": "2013Q1",
+          "lag1_period": "2012Q4",
+          "lag1_published_at": "2013-04-11 17:37:07",
+          "forecast_origin": "2013-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "THYAO",
+          "period": "2012Q1",
+          "lag1_period": "2011Q4",
+          "lag1_published_at": "2012-04-12 17:50:58",
+          "forecast_origin": "2012-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "THYAO",
+          "period": "2017Q1",
+          "lag1_period": "2016Q4",
+          "lag1_published_at": "2017-04-17 19:50:31",
+          "forecast_origin": "2017-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2017Q1",
+          "lag1_period": "2016Q4",
+          "lag1_published_at": "2017-08-02 19:58:03",
+          "forecast_origin": "2017-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "ULKER",
+          "period": "2011Q1",
+          "lag1_period": "2010Q4",
+          "lag1_published_at": "2011-04-08 23:00:53",
+          "forecast_origin": "2011-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "ZOREN",
+          "period": "2011Q1",
+          "lag1_period": "2010Q4",
+          "lag1_published_at": "2011-04-08 17:26:24",
+          "forecast_origin": "2011-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "ZOREN",
+          "period": "2012Q1",
+          "lag1_period": "2011Q4",
+          "lag1_published_at": "2012-04-12 17:53:15",
+          "forecast_origin": "2012-03-31T23:59:59.999999"
+        }
+      ],
+      "limitations": [
+        "Heuristic magnitude/reconciliation flags are not confirmed errors or automatic exclusions.",
+        "Balance totals may be derived by the parser; equality is not independent validation.",
+        "Timing-only candidates do not verify financial correctness or original report vintages.",
+        "No macro release-date/vintage reconstruction, model training or raw-file repair is performed."
+      ]
+    },
+    {
+      "path": "data/bist_bilanco_tahmini_2010_2020.csv",
+      "sha256": "4d20a7fb2ec0acd587f2912707934f81350fdd2f23d26082af952ecab39e5427",
+      "bytes": 1612641,
+      "rows": 1320,
+      "columns": 92,
+      "duplicate_company_quarters": 0,
+      "companies": [
+        "AEFES",
+        "AKENR",
+        "AKSEN",
+        "ALCTL",
+        "ARCLK",
+        "ASELS",
+        "AYGAZ",
+        "BIMAS",
+        "BRSAN",
+        "CCOLA",
+        "CEMTS",
+        "CLEBI",
+        "EREGL",
+        "FROTO",
+        "GSDDE",
+        "KAREL",
+        "KRDMD",
+        "LOGO",
+        "MGROS",
+        "NETAS",
+        "OTKAR",
+        "RYSAS",
+        "SARKY",
+        "TAVHL",
+        "THYAO",
+        "TOASO",
+        "TTRAK",
+        "TUPRS",
+        "ULKER",
+        "ZOREN"
+      ],
+      "periods": [
+        "2010Q1",
+        "2010Q2",
+        "2010Q3",
+        "2010Q4",
+        "2011Q1",
+        "2011Q2",
+        "2011Q3",
+        "2011Q4",
+        "2012Q1",
+        "2012Q2",
+        "2012Q3",
+        "2012Q4",
+        "2013Q1",
+        "2013Q2",
+        "2013Q3",
+        "2013Q4",
+        "2014Q1",
+        "2014Q2",
+        "2014Q3",
+        "2014Q4",
+        "2015Q1",
+        "2015Q2",
+        "2015Q3",
+        "2015Q4",
+        "2016Q1",
+        "2016Q2",
+        "2016Q3",
+        "2016Q4",
+        "2017Q1",
+        "2017Q2",
+        "2017Q3",
+        "2017Q4",
+        "2018Q1",
+        "2018Q2",
+        "2018Q3",
+        "2018Q4",
+        "2019Q1",
+        "2019Q2",
+        "2019Q3",
+        "2019Q4",
+        "2020Q1",
+        "2020Q2",
+        "2020Q3",
+        "2020Q4"
+      ],
+      "sector_company_counts": {
+        "Demir-Çelik ve Ana Metal": 5,
+        "Enerji ve Rafineri": 5,
+        "Otomotiv ve Sanayi": 5,
+        "Perakende ve Gıda": 5,
+        "Teknoloji ve Savunma": 5,
+        "Ulaştırma ve Lojistik": 5
+      },
+      "missing_by_column": {
+        "ticker": 0,
+        "company_name": 0,
+        "sector_group": 0,
+        "C01_kap_main_sector": 0,
+        "C01_kap_sub_sector": 0,
+        "year": 0,
+        "quarter": 0,
+        "observation_period": 0,
+        "period_end_date": 0,
+        "first_published_at": 570,
+        "disclosure_index": 750,
+        "consolidation": 0,
+        "original_unit": 0,
+        "currency": 0,
+        "T01_hasilat_ytd": 0,
+        "T02_satislarin_maliyeti_ytd": 1,
+        "T03_brut_kar_ytd": 0,
+        "T04_esas_faaliyet_kari_ytd": 1,
+        "T05_finansman_gideri_ytd": 11,
+        "F07_finansman_geliri_ytd": 107,
+        "T06_vergi_gideri_geliri_ytd": 0,
+        "T07_donem_net_kari_ytd": 0,
+        "T07_ana_ortaklik_net_kari_ytd": 0,
+        "T08_nakit_ve_nakit_benzerleri": 0,
+        "F10_kisa_vadeli_ticari_alacaklar": 129,
+        "F10_uzun_vadeli_ticari_alacaklar": 659,
+        "T09_ticari_alacaklar": 38,
+        "T10_stoklar": 27,
+        "donen_varliklar": 8,
+        "duran_varliklar": 8,
+        "T11_toplam_varliklar": 0,
+        "F13_kisa_vadeli_finansal_borclar": 23,
+        "F13_uzun_vadeli_finansal_borclar": 133,
+        "T12_finansal_borclar": 17,
+        "kisa_vadeli_ticari_borclar": 143,
+        "uzun_vadeli_ticari_borclar": 815,
+        "F12_ticari_borclar": 98,
+        "kisa_vadeli_yukumlulukler": 8,
+        "uzun_vadeli_yukumlulukler": 8,
+        "T13_toplam_yukumlulukler": 0,
+        "T14_toplam_ozkaynaklar": 0,
+        "T14_ana_ortakliga_ait_ozkaynaklar": 0,
+        "T15_isletme_nakit_akisi_ytd": 0,
+        "T16_yatirim_nakit_akisi_ytd": 52,
+        "T17_finansman_nakit_akisi_ytd": 123,
+        "T01_hasilat_ceyrek": 0,
+        "T02_satislarin_maliyeti_ceyrek": 1,
+        "T03_brut_kar_ceyrek": 0,
+        "T04_esas_faaliyet_kari_ceyrek": 1,
+        "T05_finansman_gideri_ceyrek": 16,
+        "F07_finansman_geliri_ceyrek": 110,
+        "T06_vergi_gideri_geliri_ceyrek": 0,
+        "T07_donem_net_kari_ceyrek": 0,
+        "T07_ana_ortaklik_net_kari_ceyrek": 0,
+        "T15_isletme_nakit_akisi_ceyrek": 0,
+        "T16_yatirim_nakit_akisi_ceyrek": 65,
+        "T17_finansman_nakit_akisi_ceyrek": 151,
+        "F07_net_finansman_ytd": 0,
+        "F07_net_finansman_ceyrek": 0,
+        "F01_hasilat_qoq_buyume": 37,
+        "F01_hasilat_yoy_buyume": 125,
+        "F03_brut_kar_marji": 11,
+        "F04_esas_faaliyet_marji": 12,
+        "F05_net_kar_marji": 11,
+        "F06_cfo_aktif_orani": 0,
+        "F06_tahakkuk_aktif_orani": 0,
+        "F09_nakit_aktif_orani": 0,
+        "F10_alacak_satis_orani": 49,
+        "F11_stok_maliyet_orani": 41,
+        "F12_ticari_borc_maliyet_orani": 112,
+        "F13_finansal_borc_aktif_orani": 17,
+        "F13_kisa_finansal_borc_aktif_orani": 23,
+        "F13_net_borc": 0,
+        "F14_ozkaynak_aktif_orani": 0,
+        "F14_borc_ozkaynak_orani": 0,
+        "M03_Faiz_Orani": 0,
+        "M03_Faiz_3Aylik_Degisim": 0,
+        "M04_TUFE_YoY": 0,
+        "M05_YIUFE_YoY": 0,
+        "M06_SanayiUretimi_YoY": 0,
+        "R01_GPR": 0,
+        "R04_GPRT": 0,
+        "R04_GPRA": 0,
+        "R02_GEPU_ppp": 0,
+        "M01_USDTRY_seviye": 0,
+        "M01_USDTRY_90g_degisim_pct": 0,
+        "M02_EURTRY_seviye": 0,
+        "M02_EURTRY_90g_degisim_pct": 0,
+        "R03_OFR_FSI": 0,
+        "R03_OFR_FSI_60d_mean": 0,
+        "X02_faiz_degisimi_x_finansal_borc_aktif": 17,
+        "X03_ofr_fsi_x_kisa_borc_aktif": 23
+      },
+      "target_finite_counts": {
+        "T01_hasilat_ceyrek": 1320,
+        "T02_satislarin_maliyeti_ceyrek": 1319,
+        "T03_brut_kar_ceyrek": 1320,
+        "T04_esas_faaliyet_kari_ceyrek": 1319,
+        "T05_finansman_gideri_ceyrek": 1304,
+        "T06_vergi_gideri_geliri_ceyrek": 1320,
+        "T07_donem_net_kari_ceyrek": 1320,
+        "T08_nakit_ve_nakit_benzerleri": 1320,
+        "T09_ticari_alacaklar": 1282,
+        "T10_stoklar": 1293,
+        "T11_toplam_varliklar": 1320,
+        "T12_finansal_borclar": 1303,
+        "T13_toplam_yukumlulukler": 1320,
+        "T14_toplam_ozkaynaklar": 1320,
+        "T15_isletme_nakit_akisi_ceyrek": 1320,
+        "T16_yatirim_nakit_akisi_ceyrek": 1255,
+        "T17_finansman_nakit_akisi_ceyrek": 1169
+      },
+      "nonfinite_or_nonnumeric_cells": [
+        {
+          "ticker": "GSDDE",
+          "period": "2013Q3",
+          "column": "F01_hasilat_qoq_buyume",
+          "value": "inf"
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2016Q2",
+          "column": "F01_hasilat_qoq_buyume",
+          "value": "inf"
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2016Q2",
+          "column": "F01_hasilat_yoy_buyume",
+          "value": "inf"
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2016Q3",
+          "column": "F01_hasilat_yoy_buyume",
+          "value": "inf"
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2016Q4",
+          "column": "F01_hasilat_yoy_buyume",
+          "value": "inf"
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2017Q1",
+          "column": "F01_hasilat_yoy_buyume",
+          "value": "inf"
+        },
+        {
+          "ticker": "OTKAR",
+          "period": "2011Q1",
+          "column": "F01_hasilat_qoq_buyume",
+          "value": "inf"
+        },
+        {
+          "ticker": "OTKAR",
+          "period": "2011Q4",
+          "column": "F01_hasilat_yoy_buyume",
+          "value": "inf"
+        },
+        {
+          "ticker": "OTKAR",
+          "period": "2013Q1",
+          "column": "F01_hasilat_qoq_buyume",
+          "value": "inf"
+        },
+        {
+          "ticker": "OTKAR",
+          "period": "2013Q4",
+          "column": "F01_hasilat_yoy_buyume",
+          "value": "inf"
+        }
+      ],
+      "gross_identity_flags_tolerance_1_try": [
+        {
+          "ticker": "ALCTL",
+          "period": "2010Q3",
+          "residual_try": 100000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2013Q2",
+          "residual_try": -2054000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2013Q3",
+          "residual_try": 1616000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2013Q4",
+          "residual_try": 1307000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2014Q1",
+          "residual_try": -120000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2014Q2",
+          "residual_try": -764000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2014Q3",
+          "residual_try": -1119000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2014Q4",
+          "residual_try": -2027000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2015Q1",
+          "residual_try": -1273000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2015Q2",
+          "residual_try": 712000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2015Q3",
+          "residual_try": 1610000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2015Q4",
+          "residual_try": 2677000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "period": "2016Q1",
+          "residual_try": 3606000.0
+        },
+        {
+          "ticker": "RYSAS",
+          "period": "2011Q1",
+          "residual_try": 96238395.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2010Q1",
+          "residual_try": -21673000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2010Q2",
+          "residual_try": -29613000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2010Q3",
+          "residual_try": -41007000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2010Q4",
+          "residual_try": -52766000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2011Q1",
+          "residual_try": -12457000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2011Q2",
+          "residual_try": -25440000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2011Q3",
+          "residual_try": -39914000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2011Q4",
+          "residual_try": -58593000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2012Q1",
+          "residual_try": -17621000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2012Q2",
+          "residual_try": -31080000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2012Q3",
+          "residual_try": -48944000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2012Q4",
+          "residual_try": -65865000.0
+        },
+        {
+          "ticker": "TUPRS",
+          "period": "2013Q1",
+          "residual_try": -14921000.0
+        }
+      ],
+      "balance_identity_flags_tolerance_1_try": [],
+      "asset_jumps_over_20x": [
+        {
+          "ticker": "THYAO",
+          "period": "2015Q4",
+          "previous_period": "2015Q3",
+          "current_assets_try": 47638.0,
+          "previous_assets_try": 49915110600.0,
+          "current_to_previous_ratio": 9.543803354810157e-07
+        },
+        {
+          "ticker": "THYAO",
+          "period": "2016Q2",
+          "previous_period": "2016Q1",
+          "current_assets_try": 52416000000.0,
+          "previous_assets_try": 48349.0,
+          "current_to_previous_ratio": 1084117.561893731
+        },
+        {
+          "ticker": "TOASO",
+          "period": "2013Q1",
+          "previous_period": "2012Q4",
+          "current_assets_try": 6266179.0,
+          "previous_assets_try": 6061534000.0,
+          "current_to_previous_ratio": 0.0010337612558141223
+        },
+        {
+          "ticker": "TOASO",
+          "period": "2013Q2",
+          "previous_period": "2013Q1",
+          "current_assets_try": 5937562000.0,
+          "previous_assets_try": 6266179.0,
+          "current_to_previous_ratio": 947.5570359544469
+        },
+        {
+          "ticker": "TOASO",
+          "period": "2014Q3",
+          "previous_period": "2014Q2",
+          "current_assets_try": 6550101.0,
+          "previous_assets_try": 6342998000.0,
+          "current_to_previous_ratio": 0.0010326506487941508
+        },
+        {
+          "ticker": "TOASO",
+          "period": "2014Q4",
+          "previous_period": "2014Q3",
+          "current_assets_try": 7124284000.0,
+          "previous_assets_try": 6550101.0,
+          "current_to_previous_ratio": 1087.6601750110417
+        }
+      ],
+      "cash_flow_over_10x_assets": [
+        {
+          "ticker": "KAREL",
+          "period": "2012Q1",
+          "column": "T15_isletme_nakit_akisi_ceyrek",
+          "value_try": 115282692945205.0,
+          "assets_try": 219501352.0,
+          "absolute_flow_to_assets": 525202.6554497259
+        },
+        {
+          "ticker": "KAREL",
+          "period": "2012Q1",
+          "column": "T16_yatirim_nakit_akisi_ceyrek",
+          "value_try": -477891329452055.0,
+          "assets_try": 219501352.0,
+          "absolute_flow_to_assets": 2177168.04519753
+        },
+        {
+          "ticker": "KAREL",
+          "period": "2012Q2",
+          "column": "T15_isletme_nakit_akisi_ceyrek",
+          "value_try": -115282670177637.0,
+          "assets_try": 213324343.0,
+          "absolute_flow_to_assets": 540410.2905294639
+        },
+        {
+          "ticker": "KAREL",
+          "period": "2012Q2",
+          "column": "T16_yatirim_nakit_akisi_ceyrek",
+          "value_try": 477891319747188.0,
+          "assets_try": 213324343.0,
+          "absolute_flow_to_assets": 2240209.9686634825
+        },
+        {
+          "ticker": "THYAO",
+          "period": "2015Q4",
+          "column": "T15_isletme_nakit_akisi_ceyrek",
+          "value_try": -4062540234.0,
+          "assets_try": 47638.0,
+          "absolute_flow_to_assets": 85279.4037113229
+        },
+        {
+          "ticker": "THYAO",
+          "period": "2015Q4",
+          "column": "T16_yatirim_nakit_akisi_ceyrek",
+          "value_try": 568747699.0,
+          "assets_try": 47638.0,
+          "absolute_flow_to_assets": 11938.94997690919
+        },
+        {
+          "ticker": "THYAO",
+          "period": "2015Q4",
+          "column": "T17_finansman_nakit_akisi_ceyrek",
+          "value_try": 1447735173.0,
+          "assets_try": 47638.0,
+          "absolute_flow_to_assets": 30390.343276376003
+        },
+        {
+          "ticker": "TOASO",
+          "period": "2014Q3",
+          "column": "T15_isletme_nakit_akisi_ceyrek",
+          "value_try": -359370390.0,
+          "assets_try": 6550101.0,
+          "absolute_flow_to_assets": 54.86486238914484
+        },
+        {
+          "ticker": "TOASO",
+          "period": "2014Q3",
+          "column": "T17_finansman_nakit_akisi_ceyrek",
+          "value_try": -101527814.0,
+          "assets_try": 6550101.0,
+          "absolute_flow_to_assets": 15.50019060774788
+        }
+      ],
+      "annual_quarter_reconciliation_flags_tolerance_1_try": [
+        {
+          "ticker": "AEFES",
+          "year": 2011,
+          "column": "T07_donem_net_kari",
+          "residual_try": -2957000.0,
+          "absolute_relative_residual": 0.00822595362086616
+        },
+        {
+          "ticker": "AKENR",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": 4668551.0,
+          "absolute_relative_residual": 0.1819066980209578
+        },
+        {
+          "ticker": "AKSEN",
+          "year": 2013,
+          "column": "T07_donem_net_kari",
+          "residual_try": 148536.0,
+          "absolute_relative_residual": 0.0011143581798486297
+        },
+        {
+          "ticker": "AKSEN",
+          "year": 2016,
+          "column": "T01_hasilat",
+          "residual_try": 83692202.0,
+          "absolute_relative_residual": 0.026333192859771298
+        },
+        {
+          "ticker": "AKSEN",
+          "year": 2016,
+          "column": "T07_donem_net_kari",
+          "residual_try": -2.0,
+          "absolute_relative_residual": 5.511822170956887e-09
+        },
+        {
+          "ticker": "ALCTL",
+          "year": 2013,
+          "column": "T07_donem_net_kari",
+          "residual_try": -73897.0,
+          "absolute_relative_residual": 0.003932846396315343
+        },
+        {
+          "ticker": "ASELS",
+          "year": 2016,
+          "column": "T01_hasilat",
+          "residual_try": 1015.0,
+          "absolute_relative_residual": 2.6936538047130184e-07
+        },
+        {
+          "ticker": "ASELS",
+          "year": 2016,
+          "column": "T07_donem_net_kari",
+          "residual_try": -360.0,
+          "absolute_relative_residual": 4.527157284761966e-07
+        },
+        {
+          "ticker": "ASELS",
+          "year": 2017,
+          "column": "T01_hasilat",
+          "residual_try": 1000.0,
+          "absolute_relative_residual": 1.8655745344598667e-07
+        },
+        {
+          "ticker": "ASELS",
+          "year": 2018,
+          "column": "T01_hasilat",
+          "residual_try": 1000.0,
+          "absolute_relative_residual": 1.1100607469643169e-07
+        },
+        {
+          "ticker": "ASELS",
+          "year": 2018,
+          "column": "T07_donem_net_kari",
+          "residual_try": -1000.0,
+          "absolute_relative_residual": 4.311558382596481e-07
+        },
+        {
+          "ticker": "ASELS",
+          "year": 2019,
+          "column": "T07_donem_net_kari",
+          "residual_try": -1000.0,
+          "absolute_relative_residual": 2.9826947035991877e-07
+        },
+        {
+          "ticker": "ASELS",
+          "year": 2020,
+          "column": "T07_donem_net_kari",
+          "residual_try": 1000.0,
+          "absolute_relative_residual": 2.2415161974201942e-07
+        },
+        {
+          "ticker": "AYGAZ",
+          "year": 2010,
+          "column": "T01_hasilat",
+          "residual_try": 6456000.0,
+          "absolute_relative_residual": 0.0013860954190147558
+        },
+        {
+          "ticker": "AYGAZ",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": -1000.0,
+          "absolute_relative_residual": 4.163942754115017e-06
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2010,
+          "column": "T01_hasilat",
+          "residual_try": -1327234.0,
+          "absolute_relative_residual": 0.0013528285061258352
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": 3883.0,
+          "absolute_relative_residual": 0.00028857214901975765
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2011,
+          "column": "T01_hasilat",
+          "residual_try": -19872739.0,
+          "absolute_relative_residual": 0.014927129110853468
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2011,
+          "column": "T07_donem_net_kari",
+          "residual_try": -1272010.0,
+          "absolute_relative_residual": 0.024173305119709942
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2012,
+          "column": "T01_hasilat",
+          "residual_try": -994615.0,
+          "absolute_relative_residual": 0.0006974143327938614
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2012,
+          "column": "T07_donem_net_kari",
+          "residual_try": -53458.0,
+          "absolute_relative_residual": 0.001354227177144127
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2013,
+          "column": "T01_hasilat",
+          "residual_try": -19266827.0,
+          "absolute_relative_residual": 0.016079812731519157
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2013,
+          "column": "T07_donem_net_kari",
+          "residual_try": -261803.0,
+          "absolute_relative_residual": 0.007133027059882493
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2014,
+          "column": "T01_hasilat",
+          "residual_try": 7842454.0,
+          "absolute_relative_residual": 0.0047860436306107965
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2014,
+          "column": "T07_donem_net_kari",
+          "residual_try": -176969.0,
+          "absolute_relative_residual": 0.007073577331360858
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2015,
+          "column": "T01_hasilat",
+          "residual_try": -48714110.0,
+          "absolute_relative_residual": 0.024995371731058622
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2015,
+          "column": "T07_donem_net_kari",
+          "residual_try": 99614.0,
+          "absolute_relative_residual": 0.005208111130908912
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2016,
+          "column": "T01_hasilat",
+          "residual_try": -157493.0,
+          "absolute_relative_residual": 8.00948550756848e-05
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2016,
+          "column": "T07_donem_net_kari",
+          "residual_try": -152734.0,
+          "absolute_relative_residual": 0.0014961860548806224
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2017,
+          "column": "T01_hasilat",
+          "residual_try": 24015197.0,
+          "absolute_relative_residual": 0.008451272759999661
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2017,
+          "column": "T07_donem_net_kari",
+          "residual_try": 1586140.0,
+          "absolute_relative_residual": 0.0065117883777735365
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2018,
+          "column": "T01_hasilat",
+          "residual_try": -265027542.0,
+          "absolute_relative_residual": 0.05427416175322664
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2018,
+          "column": "T07_donem_net_kari",
+          "residual_try": -10280349.0,
+          "absolute_relative_residual": 0.03629757028782332
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2019,
+          "column": "T01_hasilat",
+          "residual_try": -61412354.0,
+          "absolute_relative_residual": 0.01342626487668583
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2019,
+          "column": "T07_donem_net_kari",
+          "residual_try": -886287.0,
+          "absolute_relative_residual": 0.013488952541065696
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2020,
+          "column": "T01_hasilat",
+          "residual_try": -141192875.0,
+          "absolute_relative_residual": 0.037863492751792266
+        },
+        {
+          "ticker": "BRSAN",
+          "year": 2020,
+          "column": "T07_donem_net_kari",
+          "residual_try": -161402.0,
+          "absolute_relative_residual": 0.01513916793762815
+        },
+        {
+          "ticker": "CCOLA",
+          "year": 2011,
+          "column": "T07_donem_net_kari",
+          "residual_try": -5884000.0,
+          "absolute_relative_residual": 0.0415909749563521
+        },
+        {
+          "ticker": "CLEBI",
+          "year": 2013,
+          "column": "T01_hasilat",
+          "residual_try": 344304349.0,
+          "absolute_relative_residual": 0.67793623529275
+        },
+        {
+          "ticker": "CLEBI",
+          "year": 2013,
+          "column": "T07_donem_net_kari",
+          "residual_try": 22805980.0,
+          "absolute_relative_residual": 42.073805408018124
+        },
+        {
+          "ticker": "CLEBI",
+          "year": 2018,
+          "column": "T01_hasilat",
+          "residual_try": 890112.0,
+          "absolute_relative_residual": 0.0006671153244663917
+        },
+        {
+          "ticker": "FROTO",
+          "year": 2017,
+          "column": "T01_hasilat",
+          "residual_try": -37.0,
+          "absolute_relative_residual": 1.4600677392508432e-09
+        },
+        {
+          "ticker": "FROTO",
+          "year": 2017,
+          "column": "T07_donem_net_kari",
+          "residual_try": -37.0,
+          "absolute_relative_residual": 2.483249808890437e-08
+        },
+        {
+          "ticker": "GSDDE",
+          "year": 2010,
+          "column": "T01_hasilat",
+          "residual_try": 1064238.0,
+          "absolute_relative_residual": 0.19096321550331957
+        },
+        {
+          "ticker": "GSDDE",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": -58.0,
+          "absolute_relative_residual": 1.1569918212647118e-05
+        },
+        {
+          "ticker": "GSDDE",
+          "year": 2013,
+          "column": "T01_hasilat",
+          "residual_try": -121000.0,
+          "absolute_relative_residual": 0.26535087719298245
+        },
+        {
+          "ticker": "GSDDE",
+          "year": 2014,
+          "column": "T01_hasilat",
+          "residual_try": 51000.0,
+          "absolute_relative_residual": 51000.0
+        },
+        {
+          "ticker": "GSDDE",
+          "year": 2016,
+          "column": "T01_hasilat",
+          "residual_try": -5722000.0,
+          "absolute_relative_residual": 0.1730373775250998
+        },
+        {
+          "ticker": "KAREL",
+          "year": 2020,
+          "column": "T01_hasilat",
+          "residual_try": 6983032.0,
+          "absolute_relative_residual": 0.0068549989633419975
+        },
+        {
+          "ticker": "KRDMD",
+          "year": 2018,
+          "column": "T07_donem_net_kari",
+          "residual_try": -40841105.0,
+          "absolute_relative_residual": 0.05015737876416982
+        },
+        {
+          "ticker": "LOGO",
+          "year": 2010,
+          "column": "T01_hasilat",
+          "residual_try": 3925737.0,
+          "absolute_relative_residual": 0.18912723975545548
+        },
+        {
+          "ticker": "LOGO",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": -5790452.0,
+          "absolute_relative_residual": 13.747838267765141
+        },
+        {
+          "ticker": "LOGO",
+          "year": 2013,
+          "column": "T07_donem_net_kari",
+          "residual_try": 51540.0,
+          "absolute_relative_residual": 0.0026519253780923177
+        },
+        {
+          "ticker": "MGROS",
+          "year": 2011,
+          "column": "T01_hasilat",
+          "residual_try": 304327000.0,
+          "absolute_relative_residual": 0.05289780557027223
+        },
+        {
+          "ticker": "MGROS",
+          "year": 2011,
+          "column": "T07_donem_net_kari",
+          "residual_try": -5989000.0,
+          "absolute_relative_residual": 0.03670405098976528
+        },
+        {
+          "ticker": "MGROS",
+          "year": 2015,
+          "column": "T07_donem_net_kari",
+          "residual_try": 2896000.0,
+          "absolute_relative_residual": 0.007817455925583002
+        },
+        {
+          "ticker": "NETAS",
+          "year": 2011,
+          "column": "T07_donem_net_kari",
+          "residual_try": 600.0,
+          "absolute_relative_residual": 3.337661167313617e-05
+        },
+        {
+          "ticker": "NETAS",
+          "year": 2013,
+          "column": "T07_donem_net_kari",
+          "residual_try": -475533.0,
+          "absolute_relative_residual": 0.2164599174095438
+        },
+        {
+          "ticker": "OTKAR",
+          "year": 2010,
+          "column": "T01_hasilat",
+          "residual_try": -203256268.0,
+          "absolute_relative_residual": 0.39284430868215353
+        },
+        {
+          "ticker": "OTKAR",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": -13404931.0,
+          "absolute_relative_residual": 0.6451404574981396
+        },
+        {
+          "ticker": "OTKAR",
+          "year": 2011,
+          "column": "T07_donem_net_kari",
+          "residual_try": -1629749.0,
+          "absolute_relative_residual": 0.02971467476819531
+        },
+        {
+          "ticker": "OTKAR",
+          "year": 2012,
+          "column": "T01_hasilat",
+          "residual_try": -333808053.0,
+          "absolute_relative_residual": 0.3323152159528099
+        },
+        {
+          "ticker": "OTKAR",
+          "year": 2012,
+          "column": "T07_donem_net_kari",
+          "residual_try": -22983729.0,
+          "absolute_relative_residual": 0.3008933117713276
+        },
+        {
+          "ticker": "RYSAS",
+          "year": 2010,
+          "column": "T01_hasilat",
+          "residual_try": -300900.0,
+          "absolute_relative_residual": 0.0013473720998302512
+        },
+        {
+          "ticker": "RYSAS",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": 11144277.0,
+          "absolute_relative_residual": 0.7267948121548846
+        },
+        {
+          "ticker": "RYSAS",
+          "year": 2011,
+          "column": "T07_donem_net_kari",
+          "residual_try": 5.0,
+          "absolute_relative_residual": 7.09698325693904e-07
+        },
+        {
+          "ticker": "RYSAS",
+          "year": 2012,
+          "column": "T07_donem_net_kari",
+          "residual_try": 1309434.0,
+          "absolute_relative_residual": 0.23247061881312042
+        },
+        {
+          "ticker": "RYSAS",
+          "year": 2013,
+          "column": "T07_donem_net_kari",
+          "residual_try": -348.0,
+          "absolute_relative_residual": 9.38570911432727e-06
+        },
+        {
+          "ticker": "SARKY",
+          "year": 2012,
+          "column": "T01_hasilat",
+          "residual_try": -206011.0,
+          "absolute_relative_residual": 8.704603254192588e-05
+        },
+        {
+          "ticker": "TAVHL",
+          "year": 2019,
+          "column": "T01_hasilat",
+          "residual_try": 700178000.0,
+          "absolute_relative_residual": 0.14721361825523044
+        },
+        {
+          "ticker": "THYAO",
+          "year": 2010,
+          "column": "T01_hasilat",
+          "residual_try": 3513363882.0,
+          "absolute_relative_residual": 0.417126836714692
+        },
+        {
+          "ticker": "THYAO",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": 441988309.0,
+          "absolute_relative_residual": 1.5430216551606515
+        },
+        {
+          "ticker": "THYAO",
+          "year": 2011,
+          "column": "T07_donem_net_kari",
+          "residual_try": -9265796.0,
+          "absolute_relative_residual": 0.5004039611523305
+        },
+        {
+          "ticker": "THYAO",
+          "year": 2013,
+          "column": "T01_hasilat",
+          "residual_try": 34570620.0,
+          "absolute_relative_residual": 0.0018411363416456562
+        },
+        {
+          "ticker": "THYAO",
+          "year": 2016,
+          "column": "T01_hasilat",
+          "residual_try": -6430993569.0,
+          "absolute_relative_residual": 0.21823651313288991
+        },
+        {
+          "ticker": "THYAO",
+          "year": 2016,
+          "column": "T07_donem_net_kari",
+          "residual_try": 1237998762.0,
+          "absolute_relative_residual": 26.34039919148936
+        },
+        {
+          "ticker": "TOASO",
+          "year": 2013,
+          "column": "T01_hasilat",
+          "residual_try": -1709175114.0,
+          "absolute_relative_residual": 0.2428511345768955
+        },
+        {
+          "ticker": "TOASO",
+          "year": 2013,
+          "column": "T07_donem_net_kari",
+          "residual_try": -106957225.0,
+          "absolute_relative_residual": 0.24631865423987215
+        },
+        {
+          "ticker": "TOASO",
+          "year": 2014,
+          "column": "T01_hasilat",
+          "residual_try": 3492248256.0,
+          "absolute_relative_residual": 0.4693876386439855
+        },
+        {
+          "ticker": "TOASO",
+          "year": 2014,
+          "column": "T07_donem_net_kari",
+          "residual_try": 134394335.0,
+          "absolute_relative_residual": 0.23403943138559274
+        },
+        {
+          "ticker": "TTRAK",
+          "year": 2012,
+          "column": "T07_donem_net_kari",
+          "residual_try": -1000.0,
+          "absolute_relative_residual": 3.7285939325001083e-06
+        },
+        {
+          "ticker": "TUPRS",
+          "year": 2013,
+          "column": "T01_hasilat",
+          "residual_try": -14921000.0,
+          "absolute_relative_residual": 0.00036323201957075914
+        },
+        {
+          "ticker": "ULKER",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": 20001.0,
+          "absolute_relative_residual": 0.00010448610717174648
+        },
+        {
+          "ticker": "ULKER",
+          "year": 2016,
+          "column": "T01_hasilat",
+          "residual_try": -69404213.0,
+          "absolute_relative_residual": 0.017697540769098456
+        },
+        {
+          "ticker": "ULKER",
+          "year": 2016,
+          "column": "T07_donem_net_kari",
+          "residual_try": -8379728.0,
+          "absolute_relative_residual": 0.03462629841986973
+        },
+        {
+          "ticker": "ULKER",
+          "year": 2018,
+          "column": "T01_hasilat",
+          "residual_try": -23249000.0,
+          "absolute_relative_residual": 0.003903781171983985
+        },
+        {
+          "ticker": "ULKER",
+          "year": 2018,
+          "column": "T07_donem_net_kari",
+          "residual_try": 19512000.0,
+          "absolute_relative_residual": 0.024773336414341415
+        },
+        {
+          "ticker": "ZOREN",
+          "year": 2010,
+          "column": "T01_hasilat",
+          "residual_try": 51641000.0,
+          "absolute_relative_residual": 0.11898957594079208
+        },
+        {
+          "ticker": "ZOREN",
+          "year": 2010,
+          "column": "T07_donem_net_kari",
+          "residual_try": 14555000.0,
+          "absolute_relative_residual": 0.19244754135209108
+        },
+        {
+          "ticker": "ZOREN",
+          "year": 2015,
+          "column": "T07_donem_net_kari",
+          "residual_try": -3214000.0,
+          "absolute_relative_residual": 0.012003510672069615
+        },
+        {
+          "ticker": "ZOREN",
+          "year": 2017,
+          "column": "T01_hasilat",
+          "residual_try": 15055000.0,
+          "absolute_relative_residual": 0.0038889850407755754
+        },
+        {
+          "ticker": "ZOREN",
+          "year": 2018,
+          "column": "T01_hasilat",
+          "residual_try": -427667000.0,
+          "absolute_relative_residual": 0.0635481914337501
+        },
+        {
+          "ticker": "ZOREN",
+          "year": 2018,
+          "column": "T07_donem_net_kari",
+          "residual_try": -11249000.0,
+          "absolute_relative_residual": 2.243070787637089
+        }
+      ],
+      "timing_only_candidate_count": 643,
+      "lag1_published_after_forecast_origin": [
+        {
+          "ticker": "CLEBI",
+          "period": "2011Q1",
+          "lag1_period": "2010Q4",
+          "lag1_published_at": "2011-04-01 20:25:58",
+          "forecast_origin": "2011-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "CLEBI",
+          "period": "2012Q1",
+          "lag1_period": "2011Q4",
+          "lag1_published_at": "2012-04-13 20:53:30",
+          "forecast_origin": "2012-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "CLEBI",
+          "period": "2013Q1",
+          "lag1_period": "2012Q4",
+          "lag1_published_at": "2013-04-03 18:57:06",
+          "forecast_origin": "2013-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "LOGO",
+          "period": "2011Q1",
+          "lag1_period": "2010Q4",
+          "lag1_published_at": "2011-04-08 16:01:50",
+          "forecast_origin": "2011-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "LOGO",
+          "period": "2013Q1",
+          "lag1_period": "2012Q4",
+          "lag1_published_at": "2013-04-04 13:50:32",
+          "forecast_origin": "2013-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "MGROS",
+          "period": "2012Q1",
+          "lag1_period": "2011Q4",
+          "lag1_published_at": "2012-04-10 10:08:27",
+          "forecast_origin": "2012-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "MGROS",
+          "period": "2013Q1",
+          "lag1_period": "2012Q4",
+          "lag1_published_at": "2013-04-03 18:07:56",
+          "forecast_origin": "2013-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "RYSAS",
+          "period": "2011Q1",
+          "lag1_period": "2010Q4",
+          "lag1_published_at": "2011-04-01 18:12:20",
+          "forecast_origin": "2011-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "RYSAS",
+          "period": "2012Q1",
+          "lag1_period": "2011Q4",
+          "lag1_published_at": "2012-04-13 16:57:16",
+          "forecast_origin": "2012-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "RYSAS",
+          "period": "2013Q1",
+          "lag1_period": "2012Q4",
+          "lag1_published_at": "2013-04-12 16:48:53",
+          "forecast_origin": "2013-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "SARKY",
+          "period": "2011Q1",
+          "lag1_period": "2010Q4",
+          "lag1_published_at": "2011-04-07 14:22:52",
+          "forecast_origin": "2011-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "SARKY",
+          "period": "2012Q1",
+          "lag1_period": "2011Q4",
+          "lag1_published_at": "2012-04-13 17:33:18",
+          "forecast_origin": "2012-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "SARKY",
+          "period": "2013Q1",
+          "lag1_period": "2012Q4",
+          "lag1_published_at": "2013-04-11 17:37:07",
+          "forecast_origin": "2013-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "THYAO",
+          "period": "2012Q1",
+          "lag1_period": "2011Q4",
+          "lag1_published_at": "2012-04-12 17:50:58",
+          "forecast_origin": "2012-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "ULKER",
+          "period": "2011Q1",
+          "lag1_period": "2010Q4",
+          "lag1_published_at": "2011-04-08 23:00:53",
+          "forecast_origin": "2011-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "ZOREN",
+          "period": "2011Q1",
+          "lag1_period": "2010Q4",
+          "lag1_published_at": "2011-04-08 17:26:24",
+          "forecast_origin": "2011-03-31T23:59:59.999999"
+        },
+        {
+          "ticker": "ZOREN",
+          "period": "2012Q1",
+          "lag1_period": "2011Q4",
+          "lag1_published_at": "2012-04-12 17:53:15",
+          "forecast_origin": "2012-03-31T23:59:59.999999"
+        }
+      ],
+      "limitations": [
+        "Heuristic magnitude/reconciliation flags are not confirmed errors or automatic exclusions.",
+        "Balance totals may be derived by the parser; equality is not independent validation.",
+        "Timing-only candidates do not verify financial correctness or original report vintages.",
+        "No macro release-date/vintage reconstruction, model training or raw-file repair is performed."
+      ]
+    }
+  ],
+  "external_daily": {
+    "path": "data/external/daily_fx_and_fsi.csv",
+    "sha256": "1e768956cb447ff8df41f5b58f636e4a2e1afe4dc24f57b5a863279c07c4d7d7",
+    "rows": 7332,
+    "weekend_rows": 427,
+    "quarter_end_snapshots": 44,
+    "mean_calendar_days_in_63_row_fx_shift": 79.68181818181819,
+    "mean_nonmissing_ofr_points_in_60_row_window": 52.72727272727273
+  },
+  "comparison": {
+    "shared_company_quarters": 1320,
+    "only_root_keys": 0,
+    "only_data_keys": 0,
+    "exact_cell_differences_by_column": {
+      "F01_hasilat_qoq_buyume": 862,
+      "F01_hasilat_yoy_buyume": 708,
+      "F03_brut_kar_marji": 906,
+      "F04_esas_faaliyet_marji": 1048,
+      "F05_net_kar_marji": 1073,
+      "F06_cfo_aktif_orani": 1215,
+      "F06_tahakkuk_aktif_orani": 1225,
+      "F09_nakit_aktif_orani": 1081,
+      "F10_alacak_satis_orani": 411,
+      "F11_stok_maliyet_orani": 565,
+      "F12_ticari_borc_maliyet_orani": 292,
+      "F13_finansal_borc_aktif_orani": 615,
+      "F13_kisa_finansal_borc_aktif_orani": 1011,
+      "F14_borc_ozkaynak_orani": 251,
+      "F14_ozkaynak_aktif_orani": 591,
+      "M01_USDTRY_90g_degisim_pct": 150,
+      "M01_USDTRY_seviye": 30,
+      "M02_EURTRY_90g_degisim_pct": 270,
+      "M02_EURTRY_seviye": 30,
+      "R03_OFR_FSI_60d_mean": 30,
+      "X02_faiz_degisimi_x_finansal_borc_aktif": 213,
+      "X03_ofr_fsi_x_kisa_borc_aktif": 783,
+      "disclosure_index": 700,
+      "first_published_at": 544
+    },
+    "material_numeric_differences_rtol_1e_minus12_atol_1e_minus9": []
+  }
+}

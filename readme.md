@@ -4,7 +4,7 @@ BIST şirketlerinin sıradaki açıklanacak finansal raporlarındaki ana kalemle
 
 Hedef; gelir tablosu, bilanço ve nakit akışındaki kalemleri aralarındaki muhasebe ilişkilerini gözeterek birlikte tahmin etmek. EPS (hisse başına kâr), bu sonuçlardan hesaplanabilecek göstergelerden biri.
 
-**Mevcut durum:** Kaynak araştırması ve yöntem karşılaştırması tamamlandı. Bu depoda henüz eğitilmiş bir tahmin modeli veya çalışan tahmin uygulaması bulunmuyor.
+**Mevcut durum:** Kaynak araştırması ve yöntem karşılaştırması tamamlandı. 30 şirketin 2010–2020 döneminden 1.320 şirket–çeyrek gözlemi [tek kanonik CSV](data/bist_bilanco_tahmini_2010_2020.csv) altında tutuluyor. [Veri hattı düzeltmeleri](docs/model_oncesi/VERI_HATTI_DUZELTMELERI_2026-11-08.md) 23 regresyon testiyle doğrulandı; kaynak kapsamı ve tarihsel yayın sürümü incelemesi sürüyor. Üretime hazır model veya çalışan tahmin uygulaması henüz bulunmuyor.
 
 ## Tahmin kapsamı
 
