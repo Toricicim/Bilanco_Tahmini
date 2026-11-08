@@ -74,7 +74,6 @@ Son veri hattı düzeltmesi `b02bee9`, önceki yerel belgelerin korunması `8edb
 - **Kalite yardımcıları:** `scripts/financial_quality.py`; kaynak satırı takibi, eksiklik sınıfları, takvim pencereleri, atomik yazma.
 - **Denetim:** `scripts/audit_dataset.py`; mevcut çıktıyı okur, indirme/eğitim yapmaz.
 - **Regresyon örnekleri:** `tests/test_financial_pipeline.py`; gerçek AEFES/GSDDE/TOASO/CCOLA raporları ve KAREL nakit uzlaşması dahil.
-- **Eski deney:** `scripts/run_demo_models.py`. Veri okuma yolu ve finansal kullanılabilirlik sütunu güncellendi; tam değerlendirme tasarımı henüz doğrulanmış kabul edilmiyor.
 - **Önceki yerel çalışmalar:** `docs/model_oncesi/arsiv/`; ZIP ve SHA-256 manifestosu korunur. Buradaki `.py.txt` bir tarihsel kopyadır, güncel çalıştırılacak betik değildir.
 
 ## 6. Ortam ve kontrol komutları

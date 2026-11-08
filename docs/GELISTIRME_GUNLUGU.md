@@ -4,6 +4,16 @@ Her commit için kayıt eklenir; **en yeni kayıt üstte** durur. Çalışmaya b
 
 Kayıt aynı committe değişiklikle birlikte bulunmalı. Küçük değişiklik için kısa kayıt yeterlidir. Yeni commitin kendi hash'i yerine benzersiz kayıt kimliği ve commit başlığı yazılır; hash eklemek amacıyla ikinci commit oluşturulmaz. `git log --oneline -- docs/GELISTIRME_GUNLUGU.md` kayıtların Git geçmişini gösterir. İlk iki tarihsel kayıt, günlük oluşturulurken mevcut commitlerden geriye dönük özetlenmiştir; eski commitler değiştirilmemiştir.
 
+## 2026-11-08 — Eski demo model betiğinin (`run_demo_models.py`) kaldırılması ve değişken raporunun sadeleştirilmesi
+
+- **Kayıt ID:** `2026-11-08-remove-demo-model-script`
+- **Commit konusu:** `chore: remove legacy run_demo_models.py and clean up variable status report`
+- **Neden:** `scripts/run_demo_models.py` önceki `cd10910` dalından kalan ve mevcut veri/modelleme yaklaşımını temsil etmeyen eski bir deneme betiğiydi; kullanıcı bu betiğin `main` dalından tamamen kaldırılmasını ve değişken durum raporunun yalnız sözlük vs CSV kapsamını baz alacak şekilde temizlenmesini istedi.
+- **Değişiklik:** `scripts/run_demo_models.py` silindi; `AGENTS.md` dosya haritasındaki referansı kaldırıldı; `docs/model_oncesi/DEGISKEN_DURUMU_VE_EKSIKLER.md` içindeki demo betiği sütunları çıkarılarak doğrudan sözlükteki 17 hedef + 51 girdi ailesinin CSV'de mevcut/eksik durumu, `GPRC_TUR` (Türkiye GPR) hızlı kazanım notu ve 38 ekstra sütun üzerinden düzenlendi.
+- **Kontrol:** `git diff --check`, Markdown bağlantıları ve `unittest discover -s tests -v` (23/23 test) doğrulandı.
+- **Açık işler / sonraki AI:** P0-C kapsamında `GPRC_TUR`, günlük `GPRD`, çeyrek içi dağılım özellikleri ve çoklu $t_0$ kesimlerine dayalı temiz eğitim matrisinin kurulması.
+- **İlgili dosyalar:** [AGENTS.md](../AGENTS.md), [değişken kullanım ve eksik durumu](model_oncesi/DEGISKEN_DURUMU_VE_EKSIKLER.md), bu günlük.
+
 ## 2026-11-08 — Karma frekanslı (nowcasting) 3. yaklaşım kararı ve `.env.example` şablonu
 
 - **Kayıt ID:** `2026-11-08-nowcasting-3-yaklasim-ve-env`

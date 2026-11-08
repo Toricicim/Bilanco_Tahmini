@@ -1,20 +1,20 @@
 # Değişken Eşleme, Kullanım ve Kapsam Durumu
 
-Bu belge, yetkili değişken sözlüğü olan [degiskenler.json](degiskenler.json) ([DEGISKEN_LISTESI.md](DEGISKEN_LISTESI.md)) içindeki **17 hedef** ve **51 girdi ailesi (26 P0, 19 P1, 6 P2)** ile kanonik veri tablomuz [data/bist_bilanco_tahmini_2010_2020.csv](../../data/bist_bilanco_tahmini_2010_2020.csv) (**1.320 satır × 110 sütun**) ve ilk deney betiği [scripts/run_demo_models.py](../../scripts/run_demo_models.py) arasındaki birebir eşlemeyi tutar.
+Bu belge, yetkili değişken sözlüğü olan [degiskenler.json](degiskenler.json) ([DEGISKEN_LISTESI.md](DEGISKEN_LISTESI.md)) içindeki **17 hedef** ve **51 girdi ailesi (26 P0, 19 P1, 6 P2)** ile kanonik veri tablomuz [data/bist_bilanco_tahmini_2010_2020.csv](../../data/bist_bilanco_tahmini_2010_2020.csv) (**1.320 satır × 110 sütun**) arasındaki birebir eşlemeyi, eksik olan değişkenleri ve sözlük dışında eklenen yardımcı/metadata sütunlarını tutar.
 
-> **Kural:** Yeni bir değişken/sütun CSV'ye eklendiğinde, çıkarıldığında, adı değiştiğinde veya model deneyine dahil edildiğinde [degiskenler.json](degiskenler.json), [DEGISKEN_LISTESI.md](DEGISKEN_LISTESI.md) (`scripts/render_feature_list.py`) ile birlikte **bu dosya da güncellenmelidir**.
+> **Kural:** Yeni bir değişken/sütun CSV'ye eklendiğinde, çıkarıldığında, adı değiştiğinde veya model eğitim matrisine dahil edildiğinde [degiskenler.json](degiskenler.json), [DEGISKEN_LISTESI.md](DEGISKEN_LISTESI.md) (`scripts/render_feature_list.py`) ile birlikte **bu dosya da güncellenmelidir**.
 
 ---
 
 ## 1. Yönetici Özeti (Sayısal Dağılım)
 
-| Kategori | Sözlükteki Toplam | CSV'de Karşılığı Olan | CSV'de Henüz Olmayan (Eksik) | İlk Demo Betiğinde (`run_demo_models.py`) Kullanılan |
+| Kategori | Sözlükteki Toplam | CSV'de Karşılığı Olan (Mevcut) | CSV'de Henüz Olmayan (Eksik) | Açıklama |
 |---|---|---|---|---|
-| **Hedefler (`T01`–`T17`)** | **17** | **17 / 17** (Hem YTD hem çeyrek akış/bakiye) | **0** | **4** (`T01`, `T07`, `T11`, `T14` hedef olarak; `T01`, `T07`, `T11`, `T14` geçmiş gecikmeleri girdi olarak) |
-| **P0 Girdi Aileleri** | **26** | **26 / 26** (`M03` bankalararası faiz vekiliyle) | **0** | **21 / 26** (5 P0 ailesi CSV'de var ama ilk demo betiğinde girdi listesine eklenmedi) |
-| **P1 Girdi Aileleri** | **19** | **1 / 19** (`R04`: `R04_GPRT`, `R04_GPRA`; ayrıca `F15` için kısmi `duran_varliklar`) | **18** (Dipnot, segment, ihracat, CAPEX/amortisman, emtia, sektörel talep ve etkileşimler) | **0 / 19** |
-| **P2 Girdi Aileleri** | **6** | **0 / 6** | **6** (Borç vade/korunma detayı, müşteri/tedarik yoğunlaşması, sözleşme fiyatlama, olay bağlamı) | **0 / 6** |
-| **Sözlük Dışı / Ekstra Sütunlar** | — | **38 sütun** (24 kimlik/zaman/kalite metadatası + 14 ek finansal alt kalem, türev ve HBK sütunu) | — | `sector_group`, `quarter`, `period_end_date`, `available_at` |
+| **Hedefler (`T01`–`T17`)** | **17** | **17 / 17** (Hem YTD hem çeyrek akış/bakiye) | **0** | İlk aşamada öncelikli 4 hedef (`T01`, `T07`, `T11`, `T14`) %100 doludur (`0` eksik). |
+| **P0 Girdi Aileleri** | **26** | **26 / 26** (`M03` bankalararası faiz vekiliyle) | **0** | 26 P0 ailesinin tamamının CSV'de karşılık gelen sütun(lar)ı mevcuttur. |
+| **P1 Girdi Aileleri** | **19** | **1 / 19** (`R04`: `R04_GPRT`, `R04_GPRA`; ayrıca `F15` için kısmi `duran_varliklar`) | **18** | Dipnot, segment, ihracat, CAPEX/amortisman, emtia, sektörel talep ve şirket profil etkileşimleri. |
+| **P2 Girdi Aileleri** | **6** | **0 / 6** | **6** | Borç vade/korunma detayı, müşteri/tedarik yoğunlaşması, sözleşme fiyatlama, olay bağlamı. |
+| **Sözlük Dışı / Ekstra Sütunlar** | — | **38 sütun** | — | 25 kimlik/zaman/kalite metadatası + 13 ek finansal alt kalem, türev ve HBK sütunu. |
 
 ---
 
@@ -28,79 +28,68 @@ CSV'deki bazı sütun adlarının başındaki `Fxx` önekleri, [degiskenler.json
    * Sözlükte `F07` "Vergi gideri/geliri" ailesidir ve CSV'deki karşılığı `T06_vergi_gideri_geliri_ytd` / `T06_vergi_gideri_geliri_ceyrek` sütunlarının geçmiş değerleridir.
    * CSV'deki `F07_finansman_geliri_ytd`, `F07_finansman_geliri_ceyrek`, `F07_net_finansman_ytd`, `F07_net_finansman_ceyrek` sütunları ise sözlükteki **`F08` (Finansman ve faiz giderleri)** ailesinin yardımcı/ekstra bileşenleridir.
 3. **CSV'deki Eşzamanlı Etkileşim Sütunları (`X02_*`, `X03_*`):**
-   * CSV'deki `X02_faiz_degisimi_x_finansal_borc_aktif` ve `X03_ofr_fsi_x_kisa_borc_aktif` sütunları **aynı satırın (`q` çeyreğinin)** borç oranlarıyla çarpılmıştır. Tahmin anında (`t0`) hedef çeyreğin bilançosu henüz açıklanmadığı için modelde doğrudan bu iki CSV sütunu **kullanılmaz**; bunun yerine `q-1` borç oranlarıyla çarpılan `X02_pit` ve `X03_pit` kullanılır.
+   * CSV'deki `X02_faiz_degisimi_x_finansal_borc_aktif` ve `X03_ofr_fsi_x_kisa_borc_aktif` sütunları **aynı satırın (`q` çeyreğinin)** borç oranlarıyla çarpılmıştır. Tahmin anında (`t0`) hedef çeyreğin bilançosu henüz açıklanmadığı için eğitim matrisinde doğrudan bu iki eşzamanlı sütun **kullanılmaz**; bunun yerine `available_at <= t0` koşulunu sağlayan geçmiş (`q-1`) borç oranlarıyla çarpılan sızıntısız etkileşimler üretilir.
 
 ---
 
-## 3. Hedef Değişkenlerin (`T01`–`T17`) Durumu
+## 3. Hedef Değişkenlerin (`T01`–`T17`) CSV Durumu
 
 17 hedefin tamamı CSV'de mevcuttur. Akış kalemleri (gelir tablosu ve nakit akışı) hem kümülatif (`_ytd`) hem tek çeyrek (`_ceyrek`) olarak tutulur; model hedefi tek çeyrek (`_ceyrek`) ve dönem sonu bilanço bakiyeleridir.
 
-| Sözlük ID | Hedef Tanımı | Tür | CSV Hedef Sütunu | CSV YTD Sütunu | Boşluk (`NaN` / 1.320) | Şu Anki Kullanım Durumu |
+| Sözlük ID | Hedef Tanımı | Tür | CSV Hedef Sütunu | CSV YTD Sütunu | Boşluk (`NaN` / 1.320) | Kapsam ve Notlar |
 |---|---|---|---|---|---|---|
-| **T01** | Hasılat | Akış | `T01_hasilat_ceyrek` | `T01_hasilat_ytd` | `0 / 1320` | **Aktif (Öncelikli 4 Hedeften 1'i)** |
-| **T02** | Satışların maliyeti | Akış | `T02_satislarin_maliyeti_ceyrek` | `T02_satislarin_maliyeti_ytd` | `1 / 1320` (YTD: `1`) | CSV'de hazır; ilk 4 hedef sonrası sırada |
-| **T03** | Brüt kâr | Türetilmiş akış | `T03_brut_kar_ceyrek` | `T03_brut_kar_ytd` | `0 / 1320` | CSV'de hazır (76 karma kapsam bayrağına dikkat) |
+| **T01** | Hasılat | Akış | `T01_hasilat_ceyrek` | `T01_hasilat_ytd` | `0 / 1320` | **Öncelikli 4 Hedeften 1'i** (Tam dolu) |
+| **T02** | Satışların maliyeti | Akış | `T02_satislarin_maliyeti_ceyrek` | `T02_satislarin_maliyeti_ytd` | `1 / 1320` (YTD: `1`) | CSV'de hazır |
+| **T03** | Brüt kâr | Türetilmiş akış | `T03_brut_kar_ceyrek` | `T03_brut_kar_ytd` | `0 / 1320` | Tam dolu (76 karma kapsam ve 14 olağan uzlaşma bayrağına dikkat) |
 | **T04** | Esas faaliyet kârı | Akış | `T04_esas_faaliyet_kari_ceyrek` | `T04_esas_faaliyet_kari_ytd` | `1 / 1320` (YTD: `1`) | CSV'de hazır |
 | **T05** | Finansman gideri | Akış | `T05_finansman_gideri_ceyrek` | `T05_finansman_gideri_ytd` | `16 / 1320` (YTD: `11`) | CSV'de hazır |
-| **T06** | Vergi gideri/geliri | Akış | `T06_vergi_gideri_geliri_ceyrek` | `T06_vergi_gideri_geliri_ytd` | `0 / 1320` | CSV'de hazır |
-| **T07** | Dönem net kârı | Akış | `T07_donem_net_kari_ceyrek` | `T07_donem_net_kari_ytd` | `0 / 1320` | **Aktif (Öncelikli 4 Hedeften 1'i)** |
-| **T08** | Nakit ve nakit benzerleri | Bakiye | `T08_nakit_ve_nakit_benzerleri` | — | `0 / 1320` | CSV'de hazır |
-| **T09** | Ticari alacak | Bakiye | `T09_ticari_alacaklar` | — | `750 / 1320` | Uzun vadeli alacak çoğu raporda ayrı olmadığı için toplam `NaN`; kısa vadeli (`F10_kisa_...`, `129` eksik) ayrı kullanılabilir |
+| **T06** | Vergi gideri/geliri | Akış | `T06_vergi_gideri_geliri_ceyrek` | `T06_vergi_gideri_geliri_ytd` | `0 / 1320` | Tam dolu |
+| **T07** | Dönem net kârı | Akış | `T07_donem_net_kari_ceyrek` | `T07_donem_net_kari_ytd` | `0 / 1320` | **Öncelikli 4 Hedeften 1'i** (Tam dolu) |
+| **T08** | Nakit ve nakit benzerleri | Bakiye | `T08_nakit_ve_nakit_benzerleri` | — | `0 / 1320` | Tam dolu |
+| **T09** | Ticari alacak | Bakiye | `T09_ticari_alacaklar` | — | `750 / 1320` | Uzun vadeli alacak çoğu raporda ayrı olmadığı için toplam `NaN`; kısa vadeli (`F10_kisa_...`, `129` eksik) ayrı korunuyor |
 | **T10** | Stok | Bakiye | `T10_stoklar` | — | `27 / 1320` | CSV'de hazır |
-| **T11** | Toplam varlık | Bakiye | `T11_toplam_varliklar` | — | `0 / 1320` | **Aktif (Öncelikli 4 Hedeften 1'i + Ölçekleyici)** |
+| **T11** | Toplam varlık | Bakiye | `T11_toplam_varliklar` | — | `0 / 1320` | **Öncelikli 4 Hedeften 1'i** (Tam dolu) |
 | **T12** | Finansal borç | Bakiye | `T12_finansal_borclar` | — | `139 / 1320` | Alt bileşen eksikliğinde `NaN`; kısa vadeli (`23` eksik) ayrı korunuyor |
-| **T13** | Toplam yükümlülük | Bakiye | `T13_toplam_yukumlulukler` | — | `0 / 1320` | CSV'de hazır |
-| **T14** | Toplam özkaynak | Bakiye | `T14_toplam_ozkaynaklar` | — | `0 / 1320` | **Aktif (Öncelikli 4 Hedeften 1'i)** |
+| **T13** | Toplam yükümlülük | Bakiye | `T13_toplam_yukumlulukler` | — | `0 / 1320` | Tam dolu |
+| **T14** | Toplam özkaynak | Bakiye | `T14_toplam_ozkaynaklar` | — | `0 / 1320` | **Öncelikli 4 Hedeften 1'i** (Tam dolu) |
 | **T15** | İşletme nakit akışı | Akış | `T15_isletme_nakit_akisi_ceyrek` | `T15_isletme_nakit_akisi_ytd` | `2 / 1320` (YTD: `1`) | CSV'de hazır |
 | **T16** | Yatırım nakit akışı | Akış | `T16_yatirim_nakit_akisi_ceyrek` | `T16_yatirim_nakit_akisi_ytd` | `10 / 1320` (YTD: `5`) | CSV'de hazır |
 | **T17** | Finansman nakit akışı | Akış | `T17_finansman_nakit_akisi_ceyrek` | `T17_finansman_nakit_akisi_ytd` | `11 / 1320` (YTD: `8`) | CSV'de hazır |
 
 ---
 
-## 4. P0 Girdi Aileleri: Kullanılanlar ve CSV'de Olup Henüz Modele Verilmeyenler (26 Aile)
+## 4. Mevcut P0 Girdi Ailelerinin CSV Eşlemesi (26 / 26 Aile CSV'de Mevcut)
 
-26 P0 ailesinin **tamamı** CSV'de ham veya türetilmiş sütun olarak mevcuttur.
+26 P0 ailesinin **tamamı** CSV'de ham veya türetilmiş sütun olarak mevcuttur. Model eğitim matrisinde finansal ailelerin (`F01`–`F14`) hedef çeyrek (`q`) değerleri değil, `available_at <= t0` koşulunu sağlayan geçmiş (`q-1`, `q-4` vb.) değerleri kullanılır:
 
-### A. Hem CSV'de Olan Hem İlk Demo Betiğinde (`run_demo_models.py`) Aktif Kullanılanlar (21 P0 Ailesi)
-
-| Sözlük ID | Aile Adı | CSV'deki Kaynak Sütun(lar) | Boşluk (`/1320`) | Demo Modelde (`run_demo_models.py`) Nasıl Kullanılıyor? |
+| Sözlük ID | Aile Adı | CSV'deki Karşılık Sütun(lar) | Boşluk (`/1320`) | Eğitim Matrisi (P0-C) Kullanım Notu |
 |---|---|---|---|---|
-| **F01** | Şirket ölçeği | `T11_toplam_varliklar` (geçmiş `q-1` / `q-2`) | `0` | `known_scale_assets` (hedef/girdi normalizasyonu) ve `log_known_assets` |
-| **F02** | Hasılat geçmişi | `T01_hasilat_ceyrek`, `F01_hasilat_qoq_buyume` (`30`), `F01_hasilat_yoy_buyume` (`120`) | `0` (`T01`) | `T01_hasilat_ceyrek_q1_scaled`, `_q4_scaled`, `_yoy_diff_scaled` |
-| **F03** | Satış maliyeti ve brüt marj | `T02_satislarin_maliyeti_ceyrek` (`1`), `T03_brut_kar_ceyrek` (`0`), `F03_brut_kar_marji` (`84`) | `84` (marj) | `F03_brut_kar_marji_q1` (Not: `T02` maliyetin kendisi henüz modele verilmedi) |
-| **F04** | Faaliyet kârı ve marjı | `T04_esas_faaliyet_kari_ceyrek` (`1`), `F04_esas_faaliyet_marji` (`1`) | `1` | `F04_esas_faaliyet_marji_q1` |
-| **F05** | Dönem net kârı | `T07_donem_net_kari_ceyrek` (`0`), `F05_net_kar_marji` (`0`) | `0` | `T07_donem_net_kari_ceyrek_q1_scaled`, `_q4_scaled`, `_yoy_diff_scaled`, `F05_net_kar_marji_q1` |
-| **F06** | İşletme nakit akışı ve tahakkuk | `T15_isletme_nakit_akisi_ceyrek` (`2`), `F06_cfo_aktif_orani` (`2`), `F06_tahakkuk_aktif_orani` (`2`) | `2` | `F06_cfo_aktif_orani_q1` (Not: `F06_tahakkuk_aktif_orani` CSV'de var ama betikte henüz ekli değil) |
-| **F09** | Nakit ve nakit benzerleri | `T08_nakit_ve_nakit_benzerleri` (`0`), `F09_nakit_aktif_orani` (`0`) | `0` | `F09_nakit_aktif_orani_q1` |
-| **F13** | Finansal borç ve vade dağılımı | `F13_kisa_vadeli_finansal_borclar` (`23`), `F13_uzun_vadeli_finansal_borclar` (`133`), `T12_finansal_borclar` (`139`), `F13_finansal_borc_aktif_orani` (`139`), `F13_kisa_finansal_borc_aktif_orani` (`23`) | `23`–`139` | `F13_finansal_borc_aktif_orani_q1` ve `X02_pit` / `X03_pit` içinde |
-| **F14** | Yükümlülük ve özkaynak | `T13_toplam_yukumlulukler` (`0`), `T14_toplam_ozkaynaklar` (`0`), `F14_ozkaynak_aktif_orani` (`0`) | `0` | `T14_toplam_ozkaynaklar_q1_scaled`, `_q4_scaled`, `_yoy_diff_scaled`, `F14_ozkaynak_aktif_orani_q1` |
-| **M01** | USD/TL değişimi | `M01_USDTRY_90g_degisim_pct` (`0`), `M01_USDTRY_seviye` (`0`) | `0` | `M01_USDTRY_90g_degisim_pct` (90 takvim günü değişimi) |
-| **M02** | EUR/TL değişimi | `M02_EURTRY_90g_degisim_pct` (`0`), `M02_EURTRY_seviye` (`0`) | `0` | `M02_EURTRY_90g_degisim_pct` (90 takvim günü değişimi) |
-| **M03** | Ticari kredi faizi *(Vekil)* | `M03_Faiz_Orani` (`0`), `M03_Faiz_3Aylik_Degisim` (`0`) | `0` | Her ikisi de kullanılıyor (**Uyarı:** Mevcut seri OECD gecelik bankalararası faiz vekilidir, ticari kredi faizi değildir) |
-| **M04** | TÜFE | `M04_TUFE_YoY` | `0` | `M04_TUFE_YoY` (1 ay gecikmeli yıllık değişim) |
-| **M05** | Yİ-ÜFE | `M05_YIUFE_YoY` | `0` | `M05_YIUFE_YoY` (1 ay gecikmeli yıllık değişim) |
-| **M06** | Sanayi üretimi | `M06_SanayiUretimi_YoY` | `30` (2010Q1) | `M06_SanayiUretimi_YoY` (2 ay gecikmeli yıllık değişim) |
-| **R01** | GPR: jeopolitik risk | `R01_GPR` | `0` | `R01_GPR` (1 ay gecikmeli aylık küresel endeks) |
-| **R02** | GEPU: ekonomik politika belirsizliği | `R02_GEPU_ppp` | `0` | `R02_GEPU_ppp` (1 ay gecikmeli PPP ağırlıklı endeks) |
-| **R03** | OFR FSI: finansal stres | `R03_OFR_FSI` (`0`), `R03_OFR_FSI_60d_mean` (`0`) | `0` | Her ikisi de kullanılıyor (2 ABD iş günü gecikmeli, 60 gerçek gözlem ortalaması) |
-| **C01** | Tarihsel sektör ve faaliyet kategorisi | `sector_group` (`0`), `C01_kap_main_sector` (`0`), `C01_kap_sub_sector` (`0`) | `0` | `sector_group` one-hot (`sec_*`) kukla değişkenleri olarak kullanılıyor |
-| **X02** | Faiz × finansal borçluluk | `X02_faiz_degisimi_x_finansal_borc_aktif` (`139`) | `139` | Betikte sızıntısız `X02_pit = M03_Faiz_3Aylik_Degisim * F13_finansal_borc_aktif_orani_q1` olarak üretiliyor |
-| **X03** | Finansal stres × kısa vadeli borç | `X03_ofr_fsi_x_kisa_borc_aktif` (`23`) | `23` | Betikte sızıntısız `X03_pit = R03_OFR_FSI_60d_mean * F13_kisa_finansal_borc_aktif_orani_q1` olarak üretiliyor |
-
-*(Not: Yukarıdaki listede 21 P0 ailesi yer alır; aşağıda CSV'de olup henüz demo modelde kullanılmayan 5 P0 ailesi listelenmiştir. Toplam = 26 P0 ailesi.)*
-
-### B. CSV'de Mevcut Olup İlk Demo Betiğinde (`run_demo_models.py`) Henüz Kullanılmayan P0 Aileleri (5 P0 Ailesi)
-
-Bu 5 aile CSV'de hazırdır ancak ilk demo yalnızca 4 ana hedef (`T01`, `T07`, `T11`, `T14`) üzerine odaklandığı için henüz `fin_features` listesine eklenmemiştir:
-
-| Sözlük ID | Aile Adı | CSV'deki Sütun(lar) | Boşluk (`/1320`) | Neden Henüz Kullanılmadı / Ne Zaman Eklenecek? |
-|---|---|---|---|---|
-| **F07** | Vergi gideri/geliri | `T06_vergi_gideri_geliri_ceyrek` (`0`), `T06_vergi_gideri_geliri_ytd` (`0`) | `0` | CSV'de %100 dolu; `T06` ve `T07` modellerinde `q-1` / `aktif` oranı olarak doğrudan eklenebilir. |
-| **F08** | Finansman ve faiz giderleri | `T05_finansman_gideri_ceyrek` (`16`), `T05_finansman_gideri_ytd` (`11`) | `16` | CSV'de mevcut; `T05` ve `T07` modellerinde aktif ölçekli gecikme olarak eklenebilir. |
-| **F10** | Ticari alacak | `F10_kisa_vadeli_ticari_alacaklar` (`129`), `F10_uzun_vadeli_ticari_alacaklar` (`659`), `T09_ticari_alacaklar` (`750`), `F10_alacak_satis_orani` (`750`) | `129` (kısa), `750` (toplam) | Uzun vadeli ticari alacak çoğu şirkette ayrı raporlanmadığı için toplam `T09` ve `F10_alacak_satis_orani` 750 satırda `NaN`. Modellemede kısa vadeli ticari alacak / aktif oranı tercih edilmeli. |
-| **F11** | Stok | `T10_stoklar` (`27`), `F11_stok_maliyet_orani` (`27`) | `27` | CSV'de yüksek dolulukla (%98) hazır; `T02`, `T10`, `T15` tahminlerinde eklenebilir. |
-| **F12** | Ticari borç | `kisa_vadeli_ticari_borclar` (`143`), `uzun_vadeli_ticari_borclar` (`815`), `F12_ticari_borclar` (`860`), `F12_ticari_borc_maliyet_orani` (`860`) | `143` (kısa), `860` (toplam) | Uzun vadeli ticari borç çoğu şirkette olmadığı/ayrı sunulmadığı için toplam `F12_ticari_borclar` 860 satırda `NaN`. Kısa vadeli ticari borç / aktif oranı kullanılmalı. |
+| **F01** | Şirket ölçeği | `T11_toplam_varliklar` | `0` | Tahmin anında bilinen son toplam varlık (`available_at <= t0`) ölçekleyici olarak kullanılır. |
+| **F02** | Hasılat geçmişi | `T01_hasilat_ceyrek` (`0`), `F01_hasilat_qoq_buyume` (`30`), `F01_hasilat_yoy_buyume` (`120`) | `0`–`120` | Geçmiş çeyrek (`q-1`, `q-4`) ölçekli hasılat ve yıllık değişim. |
+| **F03** | Satış maliyeti ve brüt marj | `T02_satislarin_maliyeti_ceyrek` (`1`), `T03_brut_kar_ceyrek` (`0`), `F03_brut_kar_marji` (`84`) | `1`–`84` | Karma gelir tablosu olan 76 raporda `F03_brut_kar_marji` bilinçli olarak `NaN` bırakılmıştır (`income_statement_scope_mismatch`). |
+| **F04** | Faaliyet kârı ve marjı | `T04_esas_faaliyet_kari_ceyrek` (`1`), `F04_esas_faaliyet_marji` (`1`) | `1` | Geçmiş faaliyet kârı/aktif ve faaliyet marjı. |
+| **F05** | Dönem net kârı | `T07_donem_net_kari_ceyrek` (`0`), `F05_net_kar_marji` (`0`) | `0` | Geçmiş net kâr/aktif ve net kâr marjı. |
+| **F06** | İşletme nakit akışı ve tahakkuk | `T15_isletme_nakit_akisi_ceyrek` (`2`), `F06_cfo_aktif_orani` (`2`), `F06_tahakkuk_aktif_orani` (`2`) | `2` | CFO/aktif ve `(net kâr - CFO)/aktif` tahakkuk vekili. |
+| **F07** | Vergi gideri/geliri | `T06_vergi_gideri_geliri_ceyrek` (`0`), `T06_vergi_gideri_geliri_ytd` (`0`) | `0` | Geçmiş vergi/aktif oranı (`%100` dolu). |
+| **F08** | Finansman ve faiz giderleri | `T05_finansman_gideri_ceyrek` (`16`), `T05_finansman_gideri_ytd` (`11`) | `16` | Geçmiş finansman gideri/aktif oranı. |
+| **F09** | Nakit ve nakit benzerleri | `T08_nakit_ve_nakit_benzerleri` (`0`), `F09_nakit_aktif_orani` (`0`) | `0` | Geçmiş nakit/aktif oranı (`%100` dolu). |
+| **F10** | Ticari alacak | `F10_kisa_vadeli_ticari_alacaklar` (`129`), `F10_uzun_vadeli_ticari_alacaklar` (`659`), `T09_ticari_alacaklar` (`750`), `F10_alacak_satis_orani` (`750`) | `129` (kısa), `750` (toplam) | Uzun vadeli alacak çoğu şirkette ayrı raporlanmadığı için kısa vadeli ticari alacak / aktif oranı tercih edilmeli. |
+| **F11** | Stok | `T10_stoklar` (`27`), `F11_stok_maliyet_orani` (`27`) | `27` | Geçmiş stok/aktif ve stok/maliyet oranı. |
+| **F12** | Ticari borç | `kisa_vadeli_ticari_borclar` (`143`), `uzun_vadeli_ticari_borclar` (`815`), `F12_ticari_borclar` (`860`), `F12_ticari_borc_maliyet_orani` (`860`) | `143` (kısa), `860` (toplam) | Uzun vadeli ticari borç çoğu şirkette olmadığı için kısa vadeli ticari borç / aktif oranı tercih edilmeli. |
+| **F13** | Finansal borç ve vade dağılımı | `F13_kisa_vadeli_finansal_borclar` (`23`), `F13_uzun_vadeli_finansal_borclar` (`133`), `T12_finansal_borclar` (`139`), `F13_finansal_borc_aktif_orani` (`139`), `F13_kisa_finansal_borc_aktif_orani` (`23`) | `23`–`139` | Kısa vadeli finansal borç/aktif oranı (`%98.3` dolu) ve toplam finansal borç/aktif oranı. |
+| **F14** | Yükümlülük ve özkaynak | `T13_toplam_yukumlulukler` (`0`), `T14_toplam_ozkaynaklar` (`0`), `F14_ozkaynak_aktif_orani` (`0`) | `0` | Geçmiş özkaynak/aktif ve yükümlülük/aktif oranları (`%100` dolu). |
+| **M01** | USD/TL değişimi | `M01_USDTRY_90g_degisim_pct` (`0`), `M01_USDTRY_seviye` (`0`) | `0` | 90 takvim günü değişimi ve seviye (3. yaklaşımla çeyrek içi dağılım özellikleri eklenecek). |
+| **M02** | EUR/TL değişimi | `M02_EURTRY_90g_degisim_pct` (`0`), `M02_EURTRY_seviye` (`0`) | `0` | 90 takvim günü değişimi ve seviye. |
+| **M03** | Ticari kredi faizi *(Vekil)* | `M03_Faiz_Orani` (`0`), `M03_Faiz_3Aylik_Degisim` (`0`) | `0` | **Uyarı:** Mevcut seri OECD gecelik bankalararası faiz vekilidir; `EVDS_API_KEY` ile gerçek TCMB ticari kredi faizi eklenecek. |
+| **M04** | TÜFE | `M04_TUFE_YoY` | `0` | 1 ay gecikmeli yıllık değişim. |
+| **M05** | Yİ-ÜFE | `M05_YIUFE_YoY` | `0` | 1 ay gecikmeli yıllık değişim. |
+| **M06** | Sanayi üretimi | `M06_SanayiUretimi_YoY` | `30` (2010Q1) | 2 ay gecikmeli yıllık değişim (2010Q1'deki 30 satır yayın gecikmesi nedeniyle dürüstçe `NaN`). |
+| **R01** | GPR: jeopolitik risk | `R01_GPR` | `0` | Aylık küresel GPR (ek olarak `data_gpr_export.xls` içindeki Türkiye serisi `GPRC_TUR` ve günlük `GPRD` eklenecek). |
+| **R02** | GEPU: ekonomik politika belirsizliği | `R02_GEPU_ppp` | `0` | 1 ay gecikmeli PPP ağırlıklı küresel endeks. |
+| **R03** | OFR FSI: finansal stres | `R03_OFR_FSI` (`0`), `R03_OFR_FSI_60d_mean` (`0`) | `0` | 2 ABD iş günü gecikmeli, 60 gerçek gözlem ortalaması. |
+| **C01** | Tarihsel sektör ve faaliyet kategorisi | `sector_group` (`0`), `C01_kap_main_sector` (`0`), `C01_kap_sub_sector` (`0`) | `0` | Özellikle `C01_kap_sub_sector` (`SAVUNMA` vs `BİLİŞİM` vb.) şirketlerin olaylara farklı tepkisini ayırmak için kritiktir. |
+| **X02** | Faiz × finansal borçluluk | `X02_faiz_degisimi_x_finansal_borc_aktif` (`139`) | `139` | Eğitim matrisinde `q-1` borç oranıyla çarpılarak sızıntısız üretilmeli. |
+| **X03** | Finansal stres × kısa vadeli borç | `X03_ofr_fsi_x_kisa_borc_aktif` (`23`) | `23` | Eğitim matrisinde `q-1` kısa vadeli borç oranıyla çarpılarak sızıntısız üretilmeli. |
 
 ---
 
@@ -125,8 +114,8 @@ Sözlükteki **19 P1** ve **6 P2** ailesinden yalnızca **`R04`** tam olarak CSV
 | **C09** | **P1** | Profil | Sipariş ve ifa görünürlüğü | **Eksik** | Savunma/proje şirketleri (ör. ASELS, OTKAR) için faaliyet raporlarındaki bakiye sipariş (backlog) ve yeni sözleşme verisi. |
 | **C10** | **P1** | Profil | Üretim kapasitesi, hacim ve birim fiyat | **Eksik** | KAP faaliyet raporlarındaki üretim/satış tonaj ve kapasite kullanım verileri. |
 | **X01** | **P1** | Etkileşim | Kur × net döviz pozisyonu | **Eksik** | `F19` (net döviz pozisyonu) tamamlandığında `M01`/`M02` ile çarpılarak üretilecek. |
-| **X04** | **P1** | Etkileşim | Jeopolitik risk × faaliyet karması | **Eksik** | `C02` (veya başlangıç vekili olarak `C01` sektör/faaliyet kategorisi) × `R01_GPR`. |
-| **X05** | **P1** | Etkileşim | Coğrafi satış ağırlıklı ülke riski | **Eksik** | `C04` (satış coğrafyası) ve ülke bazlı GPR serileri eşlendiğinde üretilecek. |
+| **X04** | **P1** | Etkileşim | Jeopolitik risk × faaliyet karması | **Eksik** | `C02` (veya başlangıç vekili olarak `C01_kap_sub_sector` `SAVUNMA` / `ULAŞTIRMA` / `ENERJİ`) × `R01_GPR` ve `GPRC_TUR`. |
+| **X05** | **P1** | Etkileşim | Coğrafi satış ağırlıklı ülke riski | **Eksik** | `C04` (satış coğrafyası) ve `data_gpr_export.xls` içindeki ülke bazlı GPR serileri (`GPRC_*`) eşlendiğinde üretilecek. |
 | **X06** | **P1** | Etkileşim | Emtia × üretici/tüketici profili | **Eksik** | `M07` (emtia fiyatı) ve `C07` (üretici/tüketici rolü) tamamlandığında üretilecek. |
 | **X07** | **P1** | Etkileşim | Kur × ihracat / yurtdışı satış | **Eksik** | `C03` (ihracat/yurtdışı satış payı) tamamlandığında `M01`/`M02` ile üretilecek. |
 | **F20** | **P2** | Finansal | Borç koşulları ve korunma | **Eksik** | Dipnotlardan sabit/değişken faizli borç ve türev korunma (hedge) oranları. |
@@ -136,7 +125,9 @@ Sözlükteki **19 P1** ve **6 P2** ailesinden yalnızca **`R04`** tam olarak CSV
 | **E01** | **P2** | Olay | Olay türü, coğrafyası ve ekonomik kanalı | **Eksik** | Yapılandırılmış tarihsel olay takvimi. |
 | **X08** | **P2** | Etkileşim | Olay bağlamı × ilgili şirket profili | **Eksik** | `E01` ve ilgili `C*` profilleri tamamlandığında üretilecek. |
 
-> **Hızlı Kazanım Notu:** `F16` (Pazarlama/Satış, Genel Yönetim, Ar-Ge giderleri) ve `F18` (Ertelenmiş gelirler / Alınan avanslar) aslında şu an elimizdeki `data/kap_raw_xls/*.xls` dosyalarının çoğunda ana tablo satırı olarak **mevcuttur**; PDF/dipnot indirmeye gerek kalmadan `parse_and_build_dataset.py` içine etiket kuralları eklenerek doğrudan CSV'ye kazandırılabilir.
+> **Hızlı Kazanım Notu:**
+> 1. `data/external/data_gpr_export.xls` içinde **Türkiye Jeopolitik Risk Endeksi (`GPRC_TUR`)** ve 43 ülkenin `GPRC_*` serileri halihazırda indirilmiş durumdadır; doğrudan CSV'ye (`R01` uzantısı olarak) eklenebilir.
+> 2. `F16` (Pazarlama/Satış, Genel Yönetim, Ar-Ge giderleri) ve `F18` (Ertelenmiş gelirler / Alınan sipariş avansları) elimizdeki `data/kap_raw_xls/*.xls` dosyalarının çoğunda ana tablo satırı olarak mevcuttur; PDF/dipnot indirmeye gerek kalmadan `parse_and_build_dataset.py` içine etiket kuralları eklenerek CSV'ye kazandırılabilir.
 
 ---
 
@@ -147,7 +138,7 @@ Hedef değişkenlerimiz (`T01`–`T17`) **3 ayda bir (çeyreklik)** açıklanır
 1. **Sözde-Tekrar (Pseudoreplication) Yasağı:**
    * 1.320 çeyreklik satırı 90 güne çoğaltıp aynı çeyrek bilanço hedefini ($y_q$) 90 satıra kopyalamak istatistiksel bağımsızlığı bozduğu için **yapılmayacaktır**.
 2. **Günlük Serilerden Çeyrek İçi Dağılım/Yörünge Özellikleri Üretilmesi:**
-   * Günlük `GPRD` (`data_gpr_daily_recent.xls`) veri hattına eklenecektir.
+   * Günlük `GPRD` (`data_gpr_daily_recent.xls`) ve aylık Türkiye GPR (`GPRC_TUR`) veri hattına eklenecektir.
    * Günlük serilerden (`USDTRY`, `EURTRY`, `OFR_FSI`, `GPRD`) yalnız tek bir gün veya basit fark yerine, tahmin kesim anına ($t_0$) kadar bilinen **çeyrek içi ortalama (`mean`)**, **kesim günü seviyesi (`last`)**, **volatilite (`std`)**, **zirve şok (`max`)** ve **son 15 gün / ilk 75 gün ivmesi** çıkarılacaktır. (Gelir tablosu akış kalemleri çeyrek ortalamasına, bilanço bakiye kalemleri dönem sonu kur/stres seviyesine duyarlıdır.)
 3. **Çoklu Bilgi Kesim Ufku (Nowcasting Horizons — $t_0$):**
    * Her şirket–çeyrek için çeyrek başından bilanço açıklanma gününe kadar belirli bilgi kesim noktaları ($t_0 \in \{+30\text{g (1. ay sonu)}, +60\text{g (2. ay sonu)}, +90\text{g (çeyrek sonu)}, +120\text{g (bilanço öncesi)}\}$) ve `days_since_quarter_start` (bilgi olgunluk günü) tanımlanacaktır.
@@ -159,7 +150,7 @@ Hedef değişkenlerimiz (`T01`–`T17`) **3 ayda bir (çeyreklik)** açıklanır
 
 CSV'deki 110 sütunun 72 tanesi doğrudan yukarıdaki `T01`–`T17` hedeflerine (YTD + çeyrek) ve sözlükteki `F* / M* / R* / C01 / X02 / X03` ailelerine karşılık gelir. Geriye kalan **38 sütun**, veri izlenebilirliği, zaman sızıntısı kontrolü ve finansal alt kırılımlar için **fazladan/destekleyici** olarak eklenmiştir:
 
-### A. Kimlik, Kaynak, Yayın Zamanı ve Kalite Metadatası (24 Sütun — Model Girdisi Değildir)
+### A. Kimlik, Kaynak, Yayın Zamanı ve Kalite Metadatası (25 Sütun — Model Girdisi Değildir)
 1. `ticker`: BIST işlem kodu (30 şirket).
 2. `company_name`: Şirket tam unvanı.
 3. `year`: Mali yıl (`2010`–`2020`).
