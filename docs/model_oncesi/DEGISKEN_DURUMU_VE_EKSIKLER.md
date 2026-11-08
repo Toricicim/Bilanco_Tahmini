@@ -140,6 +140,21 @@ Sözlükteki **19 P1** ve **6 P2** ailesinden yalnızca **`R04`** tam olarak CSV
 
 ---
 
+## 5.1. Planlanan Yapılacak İş: Günlük/Aylık Verilerin 3 Aylık Hedeflerle Birleştirilmesi (3. Yaklaşım — MIDAS Dağılım Özeti + Nowcasting Ufukları)
+
+Hedef değişkenlerimiz (`T01`–`T17`) **3 ayda bir (çeyreklik)** açıklanırken, kur (`M01`, `M02`), finansal stres (`R03`) ve jeopolitik risk (`R01` günlük `GPRD`) **günlük** frekanstadır. Bu frekans farkını yönetmek ve **gün geçtikçe keskinleşen tahmin** üretmek için karar verilen **3. Yaklaşım** uygulanacaktır:
+
+1. **Sözde-Tekrar (Pseudoreplication) Yasağı:**
+   * 1.320 çeyreklik satırı 90 güne çoğaltıp aynı çeyrek bilanço hedefini ($y_q$) 90 satıra kopyalamak istatistiksel bağımsızlığı bozduğu için **yapılmayacaktır**.
+2. **Günlük Serilerden Çeyrek İçi Dağılım/Yörünge Özellikleri Üretilmesi:**
+   * Günlük `GPRD` (`data_gpr_daily_recent.xls`) veri hattına eklenecektir.
+   * Günlük serilerden (`USDTRY`, `EURTRY`, `OFR_FSI`, `GPRD`) yalnız tek bir gün veya basit fark yerine, tahmin kesim anına ($t_0$) kadar bilinen **çeyrek içi ortalama (`mean`)**, **kesim günü seviyesi (`last`)**, **volatilite (`std`)**, **zirve şok (`max`)** ve **son 15 gün / ilk 75 gün ivmesi** çıkarılacaktır. (Gelir tablosu akış kalemleri çeyrek ortalamasına, bilanço bakiye kalemleri dönem sonu kur/stres seviyesine duyarlıdır.)
+3. **Çoklu Bilgi Kesim Ufku (Nowcasting Horizons — $t_0$):**
+   * Her şirket–çeyrek için çeyrek başından bilanço açıklanma gününe kadar belirli bilgi kesim noktaları ($t_0 \in \{+30\text{g (1. ay sonu)}, +60\text{g (2. ay sonu)}, +90\text{g (çeyrek sonu)}, +120\text{g (bilanço öncesi)}\}$) ve `days_since_quarter_start` (bilgi olgunluk günü) tanımlanacaktır.
+   * Her $t_0$ kesiminde yalnızca `available_at <= t0` koşulunu sağlayan günlük ve aylık veriler kullanılarak, çeyrek ilerledikçe tahmin hatasının (MAE) nasıl düştüğü ölçülecek ve canlı kullanımda (Model Sonrası) o güne kadar birikmiş günlük verilerle anlık tahmin güncellenebilecektir.
+
+---
+
 ## 6. Sözlükte Ayrı Bir ID Olarak Yazılmamış Olup CSV'ye Eklediğimiz Ekstra Sütunlar (38 Sütun)
 
 CSV'deki 110 sütunun 72 tanesi doğrudan yukarıdaki `T01`–`T17` hedeflerine (YTD + çeyrek) ve sözlükteki `F* / M* / R* / C01 / X02 / X03` ailelerine karşılık gelir. Geriye kalan **38 sütun**, veri izlenebilirliği, zaman sızıntısı kontrolü ve finansal alt kırılımlar için **fazladan/destekleyici** olarak eklenmiştir:

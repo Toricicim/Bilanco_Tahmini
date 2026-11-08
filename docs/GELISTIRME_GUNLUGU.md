@@ -4,6 +4,16 @@ Her commit için kayıt eklenir; **en yeni kayıt üstte** durur. Çalışmaya b
 
 Kayıt aynı committe değişiklikle birlikte bulunmalı. Küçük değişiklik için kısa kayıt yeterlidir. Yeni commitin kendi hash'i yerine benzersiz kayıt kimliği ve commit başlığı yazılır; hash eklemek amacıyla ikinci commit oluşturulmaz. `git log --oneline -- docs/GELISTIRME_GUNLUGU.md` kayıtların Git geçmişini gösterir. İlk iki tarihsel kayıt, günlük oluşturulurken mevcut commitlerden geriye dönük özetlenmiştir; eski commitler değiştirilmemiştir.
 
+## 2026-11-08 — Karma frekanslı (nowcasting) 3. yaklaşım kararı ve `.env.example` şablonu
+
+- **Kayıt ID:** `2026-11-08-nowcasting-3-yaklasim-ve-env`
+- **Commit konusu:** `docs: add mixed-frequency nowcasting plan and .env.example template`
+- **Neden:** Günlük frekanstaki döviz/risk verileri ile 3 aylık bilanço hedeflerinin birleştirilmesinde 90 günlük satır çoğaltma (pseudoreplication) yapmadan, gün geçtikçe tahminin keskinleşmesini sağlayan 3. yaklaşımın (çeyrek içi dağılım özellikleri + çoklu bilgi kesim ufukları $t_0$) yapılacaklara kaydedilmesi ve veri çekimi için `.env` ihtiyacının netleştirilmesi istendi.
+- **Değişiklik:** `AGENTS.md` (P0-C bölümü) ve `docs/model_oncesi/DEGISKEN_DURUMU_VE_EKSIKLER.md` (Bölüm 5.1) içine günlük GPRD eklenmesi, çeyrek içi dağılım/yörünge özellikleri (`mean`, `last`, `std`, `max`) ve çoklu bilgi kesim ufukları ($t_0 \in \{+30\text{g}, +60\text{g}, +90\text{g}, +120\text{g}\}$) planı eklendi. Mevcut veri çekimi açık uç noktalar kullandığı için zorunlu anahtar gerektirmediği, ancak P0-B (`M03` gerçek TCMB EVDS ticari kredi faizi) ve P1 (`M07`/`M08` FRED/ALFRED emtia ve vintage verileri) için kullanılacak `.env.example` şablonu oluşturuldu ve `.gitignore` içine `.env` koruması eklendi.
+- **Kontrol:** `git diff --check` ve Markdown bağlantıları doğrulandı.
+- **Açık işler / sonraki AI:** `fetch_external_macro_and_risk.py` içine günlük `GPRD` indirme ve isteğe bağlı `EVDS_API_KEY` / `FRED_API_KEY` okuma desteği eklenebilir; ardından P0-C kapsamında çeyrek içi dağılım özellikleri ve çoklu $t_0$ kesim matrisi üretilebilir.
+- **İlgili dosyalar:** [.env.example](../.env.example), [.gitignore](../.gitignore), [AGENTS.md](../AGENTS.md), [değişken kullanım ve eksik durumu](model_oncesi/DEGISKEN_DURUMU_VE_EKSIKLER.md), bu günlük.
+
 ## 2026-11-08 — Değişken kullanım, eksik ve ekstra sütun durum tablosu
 
 - **Kayıt ID:** `2026-11-08-degisken-durumu-ve-eksikler`
