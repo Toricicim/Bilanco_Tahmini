@@ -36,7 +36,7 @@ Araştırmanın farklılaşma fikri: aynı olayın farklı faaliyet, coğrafya, 
 | 4 | [8 Kasım veri hattı raporu](docs/model_oncesi/VERI_HATTI_DUZELTMELERI_2026-11-08.md) | Düzeltilen hatalar, doluluk değişimleri ve açık kaynak işleri |
 | 5 | [Script rehberi](scripts/README.md) | Çalıştırma sırası, zaman alanları, denetim çıkışları |
 | 6 | [Kalite kayıtları](data/quality/README.md), [özet](data/quality/summary.json), [manifest](data/quality/manifest.json) | Güncel veri sürümü ve kanıtlar; eski sohbet özetinden daha güncel olabilir |
-| 7 | [Değişken JSON kaydı](docs/model_oncesi/degiskenler.json) ve [üretilmiş liste](docs/model_oncesi/DEGISKEN_LISTESI.md) | Aday girdiler, hedefler, kaynaklar ve deney durumları |
+| 7 | [Değişken JSON kaydı](docs/model_oncesi/degiskenler.json), [üretilmiş liste](docs/model_oncesi/DEGISKEN_LISTESI.md) ve [değişken kullanım/eksik durumu](docs/model_oncesi/DEGISKEN_DURUMU_VE_EKSIKLER.md) | Aday girdiler, hedefler, CSV'de mevcut/eksik/ekstra sütunlar ve modelde kullanım durumu |
 | 8 | [Algoritmalar](docs/model_oncesi/arastirma/2026-11-06-bilanco-tahmini/ALGORITMALAR_VE_CALISMA_MEKANIKLERI.md), [araştırma önerisi](docs/model_oncesi/arastirma/2026-11-06-bilanco-tahmini/ARASTIRMA_PROJESI_ONERISI.md), [makaleler](docs/model_oncesi/arastirma/2026-11-06-bilanco-tahmini/MAKALELER.md) | Model seçimi, temel kıyaslar ve bilimsel gerekçeler |
 | 9 | [Ürün hedefi](docs/model_sonrasi/ISTENILEN_HEDEF.md), [mimari](docs/model_sonrasi/SISTEM_MIMARISI.md), [model yaşam döngüsü](docs/model_sonrasi/MODEL_YASAM_DONGUSU.md) | Site/işletim işi yapılıyorsa; bunlar tasarım belgeleridir |
 
@@ -182,8 +182,9 @@ Yeni doğrulama/düzeltmede kaynak raporu, ilgili satır/hücreyi, birim ve dön
 ### P0-C — Sözlük eşlemesi ve eğitim matrisi
 
 - Kanonik özellik kaydı [degiskenler.json](docs/model_oncesi/degiskenler.json): **51 girdi ailesi = 26 P0 + 19 P1 + 6 P2**; ayrıca **17 hedef**. Aile sayısı model sütun sayısı değildir; bütün adayları kullanmak zorunlu değildir.
+- Sözlükteki değişkenlerin CSV ve modelde kullanım/eksik/ekstra durumu [DEGISKEN_DURUMU_VE_EKSIKLER.md](docs/model_oncesi/DEGISKEN_DURUMU_VE_EKSIKLER.md) dosyasında tutulur.
 - CSV öneklerini sözlük ID'si sanma. Sözlük F01 “şirket ölçeği”, CSV F01 büyüme; sözlük F07 “vergi”, CSV F07 finansman geliridir. Açık kolon/tanım/birim/dönem eşlemesi gerekli.
-- Önce JSON kaydını güncelle, sonra `scripts/render_feature_list.py` ile Markdown üret; üretilmiş listeyi elle değiştirme. CSV'de kolon bulunması `data_status=verified` veya model katkısı kanıtı değildir.
+- Yeni bir değişken/sütun eklendiğinde, çıkarıldığında, adı değiştiğinde veya model deneyine dahil edildiğinde önce [degiskenler.json](docs/model_oncesi/degiskenler.json) kaydını güncelle, sonra `scripts/render_feature_list.py` ile [DEGISKEN_LISTESI.md](docs/model_oncesi/DEGISKEN_LISTESI.md) dosyasını üret (üretilmiş listeyi elle değiştirme) ve ardından [DEGISKEN_DURUMU_VE_EKSIKLER.md](docs/model_oncesi/DEGISKEN_DURUMU_VE_EKSIKLER.md) dosyasındaki kullanım/eksik/ekstra tablolarını güncelle. CSV'de kolon bulunması `data_status=verified` veya model katkısı kanıtı değildir.
 - Seçilen hedefler için q/t0, girdi kaynak dönemleri/sürümleri, kullanılabilirlik ve kalite maskelerini içeren eğitim matrisi oluştur. Hedef dönemin varlığını geçmiş ölçek yerine kullanma.
 
 **Bitiş:** veri/özellik/etiket sözleşmesi, sızıntı kontrolleri, hedef bazında kapsama ve dondurulmuş zaman bölmeleri. Kaynak denetimi açık bütün CSV'yi doğrudan modele verme.

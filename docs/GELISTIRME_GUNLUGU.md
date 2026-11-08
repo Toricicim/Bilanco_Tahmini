@@ -4,6 +4,16 @@ Her commit için kayıt eklenir; **en yeni kayıt üstte** durur. Çalışmaya b
 
 Kayıt aynı committe değişiklikle birlikte bulunmalı. Küçük değişiklik için kısa kayıt yeterlidir. Yeni commitin kendi hash'i yerine benzersiz kayıt kimliği ve commit başlığı yazılır; hash eklemek amacıyla ikinci commit oluşturulmaz. `git log --oneline -- docs/GELISTIRME_GUNLUGU.md` kayıtların Git geçmişini gösterir. İlk iki tarihsel kayıt, günlük oluşturulurken mevcut commitlerden geriye dönük özetlenmiştir; eski commitler değiştirilmemiştir.
 
+## 2026-11-08 — Değişken kullanım, eksik ve ekstra sütun durum tablosu
+
+- **Kayıt ID:** `2026-11-08-degisken-durumu-ve-eksikler`
+- **Commit konusu:** `docs: add variable usage/missing/extra mapping report and update AGENTS rule`
+- **Neden:** Sözlükteki (`degiskenler.json`) 17 hedef ve 51 girdi ailesinden (26 P0, 19 P1, 6 P2) hangilerinin şu anki 110 sütunlu CSV'de ve ilk model deneyinde (`run_demo_models.py`) kullanıldığı, hangilerinin henüz eksik olduğu ve sözlük dışında eklenen 38 yardımcı/metadata sütununun ne olduğu tek bir referans dosyada görünür olmalıydı.
+- **Değişiklik:** `docs/model_oncesi/DEGISKEN_DURUMU_VE_EKSIKLER.md` oluşturuldu; 17 hedef, 26 P0 (21 kullanılan + 5 CSV'de hazır ama henüz modele verilmeyen), 25 P1/P2 (1 hazır `R04`, 1 kısmi `F15`, 23 eksik) ve 38 ekstra/metadata sütunu boşluk sayılarıyla eşlendi. `F01`/`F07` önek farkları ve `X02`/`X03` eşzamanlı sütun uyarıları belgelendi. `AGENTS.md` ve `docs/model_oncesi/README.md` içine yeni değişken/sütun eklendiğinde veya modelde kullanıldığında bu dosyanın da güncellenmesi kuralı eklendi.
+- **Kontrol:** `git diff --check`, Markdown göreli bağlantıları ve `scripts/render_feature_list.py --check` kontrol edildi. Kod veya veri dosyaları değişmedi.
+- **Açık işler / sonraki AI:** P0-C kapsamında eğitim matrisi kurulurken bu eşleme tablosundaki P0 sütunları ve `F16`/`F18` gibi mevcut `.xls` dosyalarından çıkarılabilecek hızlı kazanım adayları değerlendirilebilir.
+- **İlgili dosyalar:** [değişken kullanım ve eksik durumu](model_oncesi/DEGISKEN_DURUMU_VE_EKSIKLER.md), [AGENTS.md](../AGENTS.md), [model öncesi rehberi](model_oncesi/README.md), bu günlük.
+
 ## 2026-11-08 — PR #1 incelemesi ve `fix/veri-hatti` dalının `main` dalına kabulü
 
 - **Kayıt ID:** `2026-11-08-pr1-kabul-ve-main-merge`

@@ -17,7 +17,7 @@ Bu çalışma alanının çıktısı, yeni şirket/dönem verisine uygulanabilen
 |---|---|
 | [Güncel veri hattı — 8 Kasım](VERI_HATTI_DUZELTMELERI_2026-11-08.md) · [Kalite kayıtları](../../data/quality/README.md) | Ayrıştırıcı düzeltmeleri, tek CSV, eksiklik nedenleri ve kalan kaynak işleri |
 | [Veri denetimi ve ilk demo kararı — 7 Kasım 2026](VERI_DENETIMI_2026-11-07.md) · [Sayısal bulgular](veri_denetimi_2026-11-07.json) | Yeni KAP veri setinin kapsamı, kalite/yayın zamanı sorunları ve eğitime başlama koşulları |
-| [Güncellenebilir değişken listemiz](DEGISKEN_LISTESI.md) · [JSON kaydı](degiskenler.json) | Girdi adayları, öncelikler, kaynaklar ve deney durumları |
+| [Güncellenebilir değişken listemiz](DEGISKEN_LISTESI.md) · [JSON kaydı](degiskenler.json) · [Değişken kullanım ve eksik durumu](DEGISKEN_DURUMU_VE_EKSIKLER.md) | Girdi adayları, öncelikler, CSV'de mevcut/eksik/ekstra sütunlar ve deneyde kullanım durumları |
 | [Araştırma ve proje karşılaştırması](arastirma/2026-11-06-bilanco-tahmini/ARASTIRMA.md) | İncelenen GitHub projeleri ve seçim gerekçeleri |
 | [Projelerin değişkenleri](arastirma/2026-11-06-bilanco-tahmini/PROJELERIN_DEGISKENLERI.md) · [HTML sürümü](arastirma/2026-11-06-bilanco-tahmini/PROJELERIN_DEGISKENLERI.html) | Diğer projelerin girdi/çıktı sözlükleri |
 | [Algoritmalar ve çalışma mekanikleri](arastirma/2026-11-06-bilanco-tahmini/ALGORITMALAR_VE_CALISMA_MEKANIKLERI.md) | Forma, standart ML ve diğer model sistemleri |
