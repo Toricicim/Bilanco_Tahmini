@@ -4,6 +4,16 @@ Her commit için kayıt eklenir; **en yeni kayıt üstte** durur. Çalışmaya b
 
 Kayıt aynı committe değişiklikle birlikte bulunmalı. Küçük değişiklik için kısa kayıt yeterlidir. Yeni commitin kendi hash'i yerine benzersiz kayıt kimliği ve commit başlığı yazılır; hash eklemek amacıyla ikinci commit oluşturulmaz. `git log --oneline -- docs/GELISTIRME_GUNLUGU.md` kayıtların Git geçmişini gösterir. İlk iki tarihsel kayıt, günlük oluşturulurken mevcut commitlerden geriye dönük özetlenmiştir; eski commitler değiştirilmemiştir.
 
+## 2026-11-08 — PR #1 incelemesi ve `fix/veri-hatti` dalının `main` dalına kabulü
+
+- **Kayıt ID:** `2026-11-08-pr1-kabul-ve-main-merge`
+- **Commit konusu:** `docs: record PR #1 review and acceptance rationale for main`
+- **Neden:** `main` (`91a7d0e`) dalındaki eski CSV birbiriyle uyumsuz iki kopya (`bist_bilanco_tahmini_2010_2020.csv` ve `data/bist_bilanco_tahmini_2010_2020.csv`), `10` adet `±inf` oran değeri, birim/ölçek sapmaları (`TOASO`, `KAREL`, `GSDDE` vb.), eksik borç/alacak bileşenlerini sıfır sayan sahte toplamlar (`F13_net_borc = -nakit`) ve `570` satırda eksik yayın tarihi içeriyordu. Ara dal (`cd10910`) üzerindeki yayın tarihini erkene çekme, son satırı nakit akışı toplamı sanma ve takvim penceresi sızıntıları da `fix/veri-hatti` dalında giderildiği için PR #1'in `main` dalına kabul edilme gerekçesi ve yapılan iki aşamalı denetim kayıt altına alındı.
+- **Değişiklik:** PR #1 (`fix/veri-hatti` → `main`) kabul gerekçesi, `main` ile karşılaştırmalı bulgular, doğrulanan kontroller ve merge sonrası kalan P0/P1 teknik notlar geliştirme günlüğüne eklendi. Kod veya veri dosyalarında değişiklik yapılmadı.
+- **Kontrol:** Python 3.12 ortamında `python3 -B -m unittest discover -s tests -v` (23/23 test geçti), `python3 -B scripts/audit_dataset.py` (`errors=[]`, çıkış `2`), `python3 -B scripts/render_feature_list.py --check` (51 girdi ailesi / 17 hedef uyumlu), `data/quality/manifest.json` tüm SHA-256 özet eşleşmeleri, 21 yeni `.xls` dosyasının ayrıştırılabilirliği ve tüm Markdown iç bağlantıları (`git diff --check` dahil) doğrulandı.
+- **Açık işler / sonraki AI:** `main` dalına kabul, veri hattı ve kalite altyapısının kanonikleşmesi demektir; doğrudan model eğitimi onayı değildir (`audit_dataset.py` çıkış `2`, `fully_point_in_time_verified=false`). Sıradaki işler: (1) P0-A/B kapsamında 105 işaretli raporun (14 olağan brüt kâr uzlaşması, 76 karma faaliyet kapsamı, birim istisnalarında `qa_flags` ve `SARKY 2017Q2` `626866` düzeltme saati izlenebilirliği) ve makro vintage takvimlerinin tamamlanması; (2) alternatif gelir/maliyet 3 aylık toplamlarında kısmi toplam kenar durumunun `finite_sum` ile korunması; (3) P1 aşamasında `run_demo_models.py` içinde `q-2`/`q-4` gecikmeleri ve eğitim etiketleri için `available_at <= t0` kontrolünün sıkılaştırılması.
+- **İlgili dosyalar:** [AGENTS.md](../AGENTS.md), [8 Kasım veri hattı raporu](model_oncesi/VERI_HATTI_DUZELTMELERI_2026-11-08.md), [kalite özeti](../data/quality/summary.json), [manifest](../data/quality/manifest.json), bu günlük.
+
 ## 2026-11-08 — AI ekip rehberi ve commit devir kuralı
 
 - **Kayıt ID:** `2026-11-08-ai-rehberi-ve-gunluk`
