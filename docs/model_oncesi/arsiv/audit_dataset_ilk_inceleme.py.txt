@@ -1,0 +1,257 @@
+#!/usr/bin/env python3
+"""Read-only CSV quality audit; writes JSON only when --output is supplied.
+
+Uses the Python standard library. Flags request investigation, not automatic
+repairs or training exclusions. Publication checks do not validate vintages.
+"""
+
+import argparse
+import csv
+import hashlib
+import json
+import math
+import subprocess
+from bisect import bisect_right
+from collections import Counter, defaultdict
+from datetime import datetime, time, timezone
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+INPUTS = [
+    "bist_bilanco_tahmini_2010_2020.csv",
+    "data/bist_bilanco_tahmini_2010_2020.csv",
+]
+META = {
+    "ticker", "company_name", "sector_group", "C01_kap_main_sector",
+    "C01_kap_sub_sector", "year", "quarter", "observation_period",
+    "period_end_date", "first_published_at", "disclosure_index",
+    "consolidation", "original_unit", "currency",
+}
+TARGETS = [
+    "T01_hasilat_ceyrek", "T02_satislarin_maliyeti_ceyrek",
+    "T03_brut_kar_ceyrek", "T04_esas_faaliyet_kari_ceyrek",
+    "T05_finansman_gideri_ceyrek", "T06_vergi_gideri_geliri_ceyrek",
+    "T07_donem_net_kari_ceyrek", "T08_nakit_ve_nakit_benzerleri",
+    "T09_ticari_alacaklar", "T10_stoklar", "T11_toplam_varliklar",
+    "T12_finansal_borclar", "T13_toplam_yukumlulukler",
+    "T14_toplam_ozkaynaklar", "T15_isletme_nakit_akisi_ceyrek",
+    "T16_yatirim_nakit_akisi_ceyrek", "T17_finansman_nakit_akisi_ceyrek",
+]
+
+
+def digest(path):
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def number(value):
+    try:
+        value = float(value)
+        return value if math.isfinite(value) else None
+    except (ValueError, TypeError):
+        return None
+
+
+def published(value):
+    return datetime.fromisoformat(value) if value else None
+
+
+def key(row):
+    return row["ticker"], int(row["year"]), int(row["quarter"])
+
+
+def identity(row):
+    return {"ticker": row["ticker"], "period": row["observation_period"]}
+
+
+def lag_key(row, lag):
+    ordinal = int(row["year"]) * 4 + int(row["quarter"]) - 1 - lag
+    return row["ticker"], ordinal // 4, ordinal % 4 + 1
+
+
+def profile(relative_path):
+    path = ROOT / relative_path
+    with path.open(encoding="utf-8-sig", newline="") as source:
+        reader = csv.DictReader(source)
+        rows, columns = list(reader), reader.fieldnames
+    rows.sort(key=key)
+    indexed = {key(row): row for row in rows}
+    duplicates = sum(n - 1 for n in Counter(key(row) for row in rows).values())
+    nonfinite = []
+    for row in rows:
+        for column in columns:
+            if column in META or not row[column]:
+                continue
+            if number(row[column]) is None:
+                nonfinite.append({**identity(row), "column": column, "value": row[column]})
+
+    gross_flags, balance_flags, asset_jumps, cf_flags = [], [], [], []
+    for row in rows:
+        revenue, cost, gross = [number(row[c]) for c in
+                               ("T01_hasilat_ytd", "T02_satislarin_maliyeti_ytd", "T03_brut_kar_ytd")]
+        if all(v is not None for v in (revenue, cost, gross)):
+            residual = revenue + cost - gross  # signed cost convention
+            if abs(residual) > 1:
+                gross_flags.append({**identity(row), "residual_try": residual})
+        assets, liabilities, equity = [number(row[c]) for c in
+                                      ("T11_toplam_varliklar", "T13_toplam_yukumlulukler", "T14_toplam_ozkaynaklar")]
+        if all(v is not None for v in (assets, liabilities, equity)):
+            residual = assets - liabilities - equity
+            if abs(residual) > 1:
+                balance_flags.append({**identity(row), "residual_try": residual})
+        previous = indexed.get(lag_key(row, 1))
+        previous_assets = number(previous["T11_toplam_varliklar"]) if previous else None
+        if assets is not None and assets > 0 and previous_assets is not None and previous_assets > 0:
+            ratio = assets / previous_assets
+            if ratio > 20 or ratio < 1 / 20:
+                asset_jumps.append({**identity(row), "previous_period": previous["observation_period"],
+                                    "current_assets_try": assets, "previous_assets_try": previous_assets,
+                                    "current_to_previous_ratio": ratio})
+        if assets is not None and assets > 0:
+            for column in TARGETS[-3:]:
+                value = number(row[column])
+                if value is not None and abs(value / assets) > 10:
+                    cf_flags.append({**identity(row), "column": column, "value_try": value,
+                                     "assets_try": assets, "absolute_flow_to_assets": abs(value / assets)})
+
+    annual_flags = []
+    grouped = defaultdict(list)
+    for row in rows:
+        grouped[(row["ticker"], row["year"])].append(row)
+    for company_year, group in sorted(grouped.items()):
+        if len(group) != 4 or {int(r["quarter"]) for r in group} != {1, 2, 3, 4}:
+            continue
+        q4 = next(r for r in group if r["quarter"] == "4")
+        for base in ("T01_hasilat", "T07_donem_net_kari"):
+            values = [number(r[base + "_ceyrek"]) for r in group]
+            ytd = number(q4[base + "_ytd"])
+            if ytd is None or any(value is None for value in values):
+                continue
+            residual = sum(values) - ytd
+            relative = abs(residual) / max(abs(ytd), 1)
+            if abs(residual) > 1:
+                annual_flags.append({"ticker": company_year[0], "year": int(company_year[1]),
+                                     "column": base, "residual_try": residual,
+                                     "absolute_relative_residual": relative})
+
+    eligible_count, late_lag1 = 0, []
+    for row in rows:
+        origin = datetime.combine(datetime.fromisoformat(row["period_end_date"]).date(), time.max)
+        lag1, lag4 = indexed.get(lag_key(row, 1)), indexed.get(lag_key(row, 4))
+        if lag1 and lag1["first_published_at"] and published(lag1["first_published_at"]) > origin:
+            late_lag1.append({**identity(row), "lag1_period": lag1["observation_period"],
+                              "lag1_published_at": lag1["first_published_at"], "forecast_origin": origin.isoformat()})
+        if not lag1 or not lag4:
+            continue
+        if any(not r["first_published_at"] or published(r["first_published_at"]) > origin for r in (lag1, lag4)):
+            continue
+        sales = [number(r["T01_hasilat_ceyrek"]) for r in (row, lag1, lag4)]
+        scale = number(lag1["T11_toplam_varliklar"])
+        if all(value is not None for value in sales) and scale is not None and scale > 0:
+            eligible_count += 1
+
+    result = {
+        "path": relative_path, "sha256": digest(path), "bytes": path.stat().st_size,
+        "rows": len(rows), "columns": len(columns), "duplicate_company_quarters": duplicates,
+        "companies": sorted({r["ticker"] for r in rows}),
+        "periods": sorted({r["observation_period"] for r in rows}),
+        "sector_company_counts": {sector: len({r["ticker"] for r in rows if r["sector_group"] == sector})
+                                  for sector in sorted({r["sector_group"] for r in rows})},
+        "missing_by_column": {c: sum(not r[c] for r in rows) for c in columns},
+        "target_finite_counts": {c: sum(number(r[c]) is not None for r in rows) for c in TARGETS},
+        "nonfinite_or_nonnumeric_cells": nonfinite,
+        "gross_identity_flags_tolerance_1_try": gross_flags,
+        "balance_identity_flags_tolerance_1_try": balance_flags,
+        "asset_jumps_over_20x": asset_jumps,
+        "cash_flow_over_10x_assets": cf_flags,
+        "annual_quarter_reconciliation_flags_tolerance_1_try": annual_flags,
+        "timing_only_candidate_count": eligible_count,
+        "lag1_published_after_forecast_origin": late_lag1,
+        "limitations": [
+            "Heuristic magnitude/reconciliation flags are not confirmed errors or automatic exclusions.",
+            "Balance totals may be derived by the parser; equality is not independent validation.",
+            "Timing-only candidates do not verify financial correctness or original report vintages.",
+            "No macro release-date/vintage reconstruction, model training or raw-file repair is performed.",
+        ],
+    }
+    return result, indexed, columns
+
+
+def run():
+    profiles = [profile(path) for path in INPUTS]
+    first, second = profiles[0][1], profiles[1][1]
+    shared_keys = sorted(first.keys() & second.keys())
+    shared_columns = sorted(set(profiles[0][2]) & set(profiles[1][2]))
+    differences, material_numeric = {}, []
+    for column in shared_columns:
+        count = sum(first[k][column] != second[k][column] for k in shared_keys)
+        if count:
+            differences[column] = count
+        if column in META:
+            continue
+        for k in shared_keys:
+            a, b = number(first[k][column]), number(second[k][column])
+            if a is not None and b is not None and not math.isclose(a, b, rel_tol=1e-12, abs_tol=1e-9):
+                material_numeric.append({**identity(first[k]), "column": column, "root": a, "data": b})
+    try:
+        commit = subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT, text=True).strip()
+    except (OSError, subprocess.CalledProcessError):
+        commit = None
+    tracked_sources = ["scripts/parse_and_build_dataset.py", "scripts/fetch_external_macro_and_risk.py",
+                       "data/kap_fr_catalog_2010_2020.json", "docs/model_oncesi/degiskenler.json"]
+    daily_path = ROOT / "data/external/daily_fx_and_fsi.csv"
+    with daily_path.open(encoding="utf-8-sig", newline="") as source:
+        daily = sorted(csv.DictReader(source), key=lambda row: row["date"])
+    dates = [datetime.fromisoformat(row["date"][:10]).date() for row in daily]
+    quarter_ends = sorted({row["period_end_date"] for row in first.values()})
+    fx_spans, ofr_counts = [], []
+    for end in quarter_ends:
+        index = bisect_right(dates, datetime.fromisoformat(end).date()) - 1
+        if index >= 63:
+            fx_spans.append((dates[index] - dates[index - 63]).days)
+        if index >= 59:
+            ofr_counts.append(sum(number(row["OFR_FSI_avail"]) is not None for row in daily[index - 59:index + 1]))
+    return {
+        "audit_schema_version": 1,
+        "generated_at_utc": datetime.now(timezone.utc).isoformat(),
+        "repository_head_at_audit": commit,
+        "audit_script_sha256": digest(Path(__file__)),
+        "source_sha256": {p: digest(ROOT / p) for p in tracked_sources},
+        "inputs": [p[0] for p in profiles],
+        "external_daily": {
+            "path": "data/external/daily_fx_and_fsi.csv", "sha256": digest(daily_path),
+            "rows": len(daily), "weekend_rows": sum(date.weekday() >= 5 for date in dates),
+            "quarter_end_snapshots": len(quarter_ends),
+            "mean_calendar_days_in_63_row_fx_shift": sum(fx_spans) / len(fx_spans) if fx_spans else None,
+            "mean_nonmissing_ofr_points_in_60_row_window": sum(ofr_counts) / len(ofr_counts) if ofr_counts else None,
+        },
+        "comparison": {"shared_company_quarters": len(shared_keys),
+                       "only_root_keys": len(first.keys() - second.keys()),
+                       "only_data_keys": len(second.keys() - first.keys()),
+                       "exact_cell_differences_by_column": differences,
+                       "material_numeric_differences_rtol_1e_minus12_atol_1e_minus9": material_numeric},
+    }
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--output", type=Path, help="Optional JSON report; input CSVs are never modified.")
+    args = parser.parse_args()
+    if args.output and args.output.suffix.lower() != ".json":
+        parser.error("--output must be a .json report, never a CSV/XLS source")
+    if args.output and args.output.resolve() in {ROOT / "data/kap_fr_catalog_2010_2020.json", ROOT / "docs/model_oncesi/degiskenler.json"}:
+        parser.error("cannot overwrite source metadata")
+    result = run()
+    if args.output:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2, allow_nan=False) + "\n", encoding="utf-8")
+    for item in result["inputs"]:
+        print(f'{item["path"]}: {item["rows"]} rows, {item["columns"]} columns; '
+              f'missing publication={item["missing_by_column"]["first_published_at"]}; '
+              f'gross flags={len(item["gross_identity_flags_tolerance_1_try"])}; '
+              f'asset jumps={len(item["asset_jumps_over_20x"])}; '
+              f'timing-only candidates={item["timing_only_candidate_count"]}')
+
+
+if __name__ == "__main__":
+    main()

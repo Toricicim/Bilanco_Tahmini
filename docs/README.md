@@ -1,6 +1,8 @@
 # Bilanço tahmini belgeleri
 
-Son düzenleme: **6 Kasım 2026**. Belgeler iki çalışma alanına ayrılır. Henüz eğitilmiş model veya çalışan site yoktur.
+Son düzenleme: **8 Kasım 2026**. Belgeler iki çalışma alanına ayrılır. Henüz eğitilmiş model veya çalışan site yoktur.
+
+Yeni AI/geliştirici önce [çalışma rehberini](../AGENTS.md) ve [geliştirme günlüğünü](GELISTIRME_GUNLUGU.md) okumalıdır. Her commitin gerekçesi, kontrolleri ve kalan işleri günlükte kaydedilir.
 
 | Alan | Amaç | Başlangıç |
 |---|---|---|
@@ -9,6 +11,8 @@ Son düzenleme: **6 Kasım 2026**. Belgeler iki çalışma alanına ayrılır. H
 
 ## 1. Model öncesi: geliştirme ve eğitim
 
+- [Güncel veri hattı düzeltmeleri ve kalan işler](model_oncesi/VERI_HATTI_DUZELTMELERI_2026-11-08.md) · [Kanonik CSV](../data/bist_bilanco_tahmini_2010_2020.csv) · [Kalite kayıtları](../data/quality/README.md)
+- [Yeni veri seti denetimi ve ilk demo kararı](model_oncesi/VERI_DENETIMI_2026-11-07.md) · [Sayısal denetim çıktısı](model_oncesi/veri_denetimi_2026-11-07.json)
 - [Güncellenebilir değişken listemiz](model_oncesi/DEGISKEN_LISTESI.md) · [JSON kaydı](model_oncesi/degiskenler.json)
 - [Araştırma, ilk üç proje ve seçim gerekçeleri](model_oncesi/arastirma/2026-11-06-bilanco-tahmini/ARASTIRMA.md)
 - [İncelenen projelerin değişkenleri](model_oncesi/arastirma/2026-11-06-bilanco-tahmini/PROJELERIN_DEGISKENLERI.md)

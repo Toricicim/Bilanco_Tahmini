@@ -1,0 +1,22 @@
+{
+  "schema_version": 2,
+  "timestamp_timezone": "Europe/Istanbul for KAP timestamps; daily market series retain source date conventions",
+  "csv_files": [
+    {
+      "path": "data/bist_bilanco_tahmini_2010_2020.csv",
+      "sha256": "aad15d610004e36465fdb17e357249913be7579ed9049694e1de4c972c0c8933"
+    }
+  ],
+  "parser_sha256": "7398c2c35949c80ef18af2c71d434635c9382db395cc41bd5699d0b639c46e25",
+  "quality_code_sha256": "6a48b60afc4da10f94ad610500a3eb1525fac921a8b3f2b72a18d6d4dcda5fee",
+  "catalog_sha256": "d6245d36ec56fe5a582a4fdcae0bc53130094d016da4dd1f383fb84ba5703798",
+  "external_sha256": {
+    "monthly_macro_and_risk.csv": "65ef03be9ccea18c23e38bcc9c265e4a71be2703c9cd250578eeaa71997fb5ec",
+    "daily_fx_and_fsi.csv": "1e768956cb447ff8df41f5b58f636e4a2e1afe4dc24f57b5a863279c07c4d7d7"
+  },
+  "diagnostics_sha256": {
+    "financial_sources.jsonl.gz": "4d8e9112ed062a8f3c701f5d96cd80181df4fc4e4110b8b4b7cfbe47b6abc5bd",
+    "missing_values.jsonl.gz": "73012df17f4831c9b6a7a0caa095dd665162dbf95f80b6d583965fbfc22132be",
+    "summary.json": "6b27eab7db0943ffef022dfe30c4cc3275203ced82faf9dc837d7187ded8e053"
+  }
+}
