@@ -4,6 +4,16 @@ Her commit için kayıt eklenir; **en yeni kayıt üstte** durur. Çalışmaya b
 
 Kayıt aynı committe değişiklikle birlikte bulunmalı. Küçük değişiklik için kısa kayıt yeterlidir. Yeni commitin kendi hash'i yerine benzersiz kayıt kimliği ve commit başlığı yazılır; hash eklemek amacıyla ikinci commit oluşturulmaz. `git log --oneline -- docs/GELISTIRME_GUNLUGU.md` kayıtların Git geçmişini gösterir. İlk iki tarihsel kayıt, günlük oluşturulurken mevcut commitlerden geriye dönük özetlenmiştir; eski commitler değiştirilmemiştir.
 
+## 2026-11-08 — Türkiye GPR (`GPRC_TUR`), şirket–risk etkileşimi (`X04`) ve `F16`/`F18` planının `AGENTS.md` rehberine işlenmesi
+
+- **Kayıt ID:** `2026-11-08-turkiye-gpr-ve-etkilesim-plani`
+- **Commit konusu:** `docs: document GPRC_TUR, sub-sector interactions (X04), and F16/F18 extraction in AGENTS.md`
+- **Neden:** Şirketlerin aynı jeopolitik/makro şoktan farklı yönde ve farklı gecikmeyle etkilenmesini (ör. savunma vs ulaştırma/enerji) sabit kural yazmadan öğrenebilmek için gereken Türkiye GPR (`GPRC_TUR`), alt sektör etkileşimi (`C01_kap_sub_sector` × risk), gecikmeli risk (`q-1..q-4`) ve sipariş avansları (`F18`) / faaliyet giderleri (`F16`) planının `DEGISKEN_DURUMU_VE_EKSIKLER.md` ile uyumlu biçimde `AGENTS.md` içinde de yer alması sağlandı.
+- **Değişiklik:** `AGENTS.md` P0-C bölümüne `GPRC_TUR`, `X04` etkileşim terimleri, gecikmeli risk ve mevcut `.xls` bilançolarından `F16`/`F18` çıkarımı maddeleri eklendi.
+- **Kontrol:** `git diff --check` ve Markdown bağlantıları doğrulandı.
+- **Açık işler / sonraki AI:** `fetch_external_macro_and_risk.py` ve `parse_and_build_dataset.py` üzerinde `GPRC_TUR`, günlük `GPRD`, `F16` ve `F18` çıkarımının uygulanması.
+- **İlgili dosyalar:** [AGENTS.md](../AGENTS.md), [değişken kullanım ve eksik durumu](model_oncesi/DEGISKEN_DURUMU_VE_EKSIKLER.md), bu günlük.
+
 ## 2026-11-08 — Eski demo model betiğinin (`run_demo_models.py`) kaldırılması ve değişken raporunun sadeleştirilmesi
 
 - **Kayıt ID:** `2026-11-08-remove-demo-model-script`
