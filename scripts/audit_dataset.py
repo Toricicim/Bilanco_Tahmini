@@ -59,6 +59,19 @@ def audit(data_dir=None):
         bad = pd.to_datetime(frame.ofr_assumed_available_at) > pd.to_datetime(frame.period_end_date)
         if bad.any():
             errors.append("OFR observation used before its assumed release date")
+    if "gprd_assumed_available_at" in frame:
+        bad_gprd = pd.to_datetime(frame.gprd_assumed_available_at) > pd.to_datetime(frame.period_end_date)
+        if bad_gprd.any():
+            errors.append("GPRD observation used before its assumed 7-day release date")
+    if "vergi_oncesi_kar_zarar_ytd" in frame and "T06_vergi_gideri_geliri_ytd" in frame:
+        same_as_ebt = (
+            frame.T06_vergi_gideri_geliri_ytd.notna()
+            & frame.vergi_oncesi_kar_zarar_ytd.notna()
+            & (frame.vergi_oncesi_kar_zarar_ytd != 0)
+            & (frame.T06_vergi_gideri_geliri_ytd == frame.vergi_oncesi_kar_zarar_ytd)
+        )
+        if same_as_ebt.any():
+            errors.append("T06 tax column mistakenly equals non-zero pre-tax profit (EBT)")
     gross = frame.T01_hasilat_ytd + frame.T02_satislarin_maliyeti_ytd - frame.T03_brut_kar_ytd
     gross_count = int((gross.abs() > 1).sum())
     mixed = frame.get("qa_flags", pd.Series("", index=frame.index)).fillna("").str.contains("mixed_activity_income_statement")

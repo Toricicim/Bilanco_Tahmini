@@ -34,7 +34,8 @@ import pandas as pd
 from fetch_kap_financials_2010_2020 import SELECTED_COMPANIES
 from financial_quality import (
     FinancialValues, atomic_text, calendar_fx_change, cash_flow_total,
-    finite_sum, missing_details, ofr_available_series, publication_metadata,
+    compute_in_quarter_trajectories, finite_sum, gprd_available_series,
+    missing_details, ofr_available_series, publication_metadata,
     save_json, save_jsonl_gzip, sha256,
 )
 
@@ -42,6 +43,13 @@ ROOT_DIR = Path(__file__).resolve().parent.parent
 KAP_RAW_DIR = ROOT_DIR / "data" / "kap_raw_xls"
 EXTERNAL_DIR = ROOT_DIR / "data" / "external"
 OUTPUT_CSV = ROOT_DIR / "data" / "bist_bilanco_tahmini_2010_2020.csv"
+
+QUARTER_START_DATES = {
+    1: "01-01",
+    2: "04-01",
+    3: "07-01",
+    4: "10-01",
+}
 
 QUARTER_END_DATES = {
     1: "03-31",
@@ -320,10 +328,18 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
         "T03_brut_kar_3m_raw": None,
         "T04_esas_faaliyet_kari_ytd": None,
         "T04_esas_faaliyet_kari_3m_raw": None,
+        "F16_pazarlama_giderleri_ytd": None,
+        "F16_pazarlama_giderleri_3m_raw": None,
+        "F16_genel_yonetim_giderleri_ytd": None,
+        "F16_genel_yonetim_giderleri_3m_raw": None,
+        "F16_ar_ge_giderleri_ytd": None,
+        "F16_ar_ge_giderleri_3m_raw": None,
         "T05_finansman_gideri_ytd": None,
         "T05_finansman_gideri_3m_raw": None,
         "F07_finansman_geliri_ytd": None,
         "F07_finansman_geliri_3m_raw": None,
+        "vergi_oncesi_kar_zarar_ytd": None,
+        "vergi_oncesi_kar_zarar_3m_raw": None,
         "T06_vergi_gideri_geliri_ytd": None,
         "T06_vergi_gideri_geliri_3m_raw": None,
         "T07_donem_net_kari_ytd": None,
@@ -335,6 +351,8 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
         "F10_uzun_vadeli_ticari_alacaklar": None,
         "T09_ticari_alacaklar": None,
         "T10_stoklar": None,
+        "F15_maddi_duran_varliklar": None,
+        "F15_maddi_olmayan_duran_varliklar": None,
         "donen_varliklar": None,
         "duran_varliklar": None,
         "T11_toplam_varliklar": None,
@@ -344,6 +362,8 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
         "kisa_vadeli_ticari_borclar": None,
         "uzun_vadeli_ticari_borclar": None,
         "F12_ticari_borclar": None,
+        "F18_kisa_vadeli_ertelenmis_gelir_ve_avanslar": None,
+        "F18_uzun_vadeli_ertelenmis_gelir_ve_avanslar": None,
         "kisa_vadeli_yukumlulukler": None,
         "uzun_vadeli_yukumlulukler": None,
         "T13_toplam_yukumlulukler": None,
@@ -354,6 +374,8 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
         "T15_isletme_nakit_akisi_ytd": None,
         "T16_yatirim_nakit_akisi_ytd": None,
         "T17_finansman_nakit_akisi_ytd": None,
+        "F15_amortisman_ve_itfa_ytd": None,
+        "F15_capex_ytd": None,
     })
 
     def optional_round(value, digits):
@@ -368,13 +390,33 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
 
     kisa_borc_parts: list[float] = []
     uzun_borc_parts: list[float] = []
+    kisa_f18_parts: dict[str, float] = {}
+    uzun_f18_parts: dict[str, float] = {}
+    f18_labels = (
+        "ertelenmis gelirler",
+        "ertelenmis gelirler (musteri sozlesmelerinden dogan yukumluluklerin disinda kalanlar)",
+        "musteri sozlesmelerinden dogan yukumlulukler",
+        "alinan avanslar",
+        "alinan siparis avanslari",
+    )
     alt_cash_parts: list[float] = []
     alt_rev_ytd: float | None = None
     alt_rev_3m: float | None = None
+    alt_rev_3m_complete: bool = True
     alt_cogs_ytd: float | None = None
     alt_cogs_3m: float | None = None
+    alt_cogs_3m_complete: bool = True
+    hizmet_rev_ytd: float | None = None
+    hizmet_rev_3m: float | None = None
+    hizmet_rev_label: str = ""
+    donem_vergi_ytd: float | None = None
+    donem_vergi_3m: float | None = None
+    ertelenmis_vergi_ytd: float | None = None
+    ertelenmis_vergi_3m: float | None = None
+    net_kar_from_continuing: bool = False
 
     cf_priorities: dict[str, int] = {}
+    cf_matched_labels: dict[str, str] = {}
     alternative_revenue_parts = []
     alternative_cost_parts = []
     flags = set()
@@ -395,6 +437,14 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
             continue
         elif ln == "nazim hesaplar":
             statement = "OFF_BS"
+            continue
+        elif ln in (
+            "diger kapsamli gelir tablosu",
+            "diger kapsamli gelir",
+            "diger kapsamli gelir unsurlari",
+            "diger kapsamli giderler",
+        ) or (ln == "kapsamli gelir tablosu" and out["T07_donem_net_kari_ytd"] is not None):
+            statement = "OCI"
             continue
         elif ln in (
             "gelir tablosu",
@@ -419,6 +469,7 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
                 field, priority = heading_total
                 out[field] = scale(v_ytd)
                 cf_priorities[field] = priority
+                cf_matched_labels[field] = ln
             cf_section = "OP"
             continue
         elif "ozsermaye degisim tablosu" in ln or "ozkaynak degisim tablosu" in ln or "ozkaynaklar degisim tablosu" in ln or "finansal tablo dipnot" in ln:
@@ -489,6 +540,12 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
                     out["odenmis_sermaye"] = scale(v_ytd)
                 continue
 
+            if bs_section in ("DONEN", "DURAN"):
+                if ln in ("maddi duran varliklar", "maddi duran varliklar (net)") and out["F15_maddi_duran_varliklar"] is None:
+                    out["F15_maddi_duran_varliklar"] = scale(v_ytd)
+                elif ln in ("maddi olmayan duran varliklar", "maddi olmayan duran varliklar (net)") and out["F15_maddi_olmayan_duran_varliklar"] is None:
+                    out["F15_maddi_olmayan_duran_varliklar"] = scale(v_ytd)
+
             if bs_section == "DONEN":
                 if ln in ("nakit ve benzerleri", "nakit ve nakit benzerleri") and out["T08_nakit_ve_nakit_benzerleri"] is None:
                     out["T08_nakit_ve_nakit_benzerleri"] = scale(v_ytd)
@@ -507,12 +564,24 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
                         kisa_borc_parts.append(scale(v_ytd))
                 elif ln == "ticari borclar" and out["kisa_vadeli_ticari_borclar"] is None:
                     out["kisa_vadeli_ticari_borclar"] = scale(v_ytd)
+                elif ln in f18_labels:
+                    if v_ytd is not None and ln not in kisa_f18_parts:
+                        kisa_f18_parts[ln] = scale(v_ytd)
+                        out["F18_kisa_vadeli_ertelenmis_gelir_ve_avanslar"] = round(sum(kisa_f18_parts.values()), 2)
+                    elif v_ytd is None and not kisa_f18_parts:
+                        out["F18_kisa_vadeli_ertelenmis_gelir_ve_avanslar"] = None
             elif bs_section == "UZUN_YUK":
                 if ln in ("finansal borclar", "uzun vadeli borclanmalar"):
                     if v_ytd is not None:
                         uzun_borc_parts.append(scale(v_ytd))
                 elif ln == "ticari borclar" and out["uzun_vadeli_ticari_borclar"] is None:
                     out["uzun_vadeli_ticari_borclar"] = scale(v_ytd)
+                elif ln in f18_labels:
+                    if v_ytd is not None and ln not in uzun_f18_parts:
+                        uzun_f18_parts[ln] = scale(v_ytd)
+                        out["F18_uzun_vadeli_ertelenmis_gelir_ve_avanslar"] = round(sum(uzun_f18_parts.values()), 2)
+                    elif v_ytd is None and not uzun_f18_parts:
+                        out["F18_uzun_vadeli_ertelenmis_gelir_ve_avanslar"] = None
 
         # ---------------- 2. GELİR TABLOSU (IS) ----------------
         elif statement == "IS":
@@ -520,6 +589,11 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
                 if v_ytd is not None:
                     out["T01_hasilat_ytd"] = scale(v_ytd)
                     out["T01_hasilat_3m_raw"] = scale(v_3m)
+            elif ln in ("hizmet gelirleri", "hizmet gelirleri (net)"):
+                if v_ytd is not None and v_ytd != 0 and hizmet_rev_ytd is None:
+                    hizmet_rev_ytd = scale(v_ytd)
+                    hizmet_rev_3m = scale(v_3m)
+                    hizmet_rev_label = label
             elif (
                 ln in ("finans sektoru faaliyetleri hasilati", "faiz, ucret, prim, komisyon ve diger gelirler", "esas faaliyet gelirleri")
                 or ln.startswith("- denizcilik sektoru gelirleri")
@@ -533,6 +607,8 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
                         flags.add("mixed_activity_income_statement")
                     if v_3m is not None:
                         alt_rev_3m = (alt_rev_3m or 0.0) + scale(v_3m)
+                    else:
+                        alt_rev_3m_complete = False
             elif ln in ("satislarin maliyeti (-)", "satislarin maliyeti") and (out["T02_satislarin_maliyeti_ytd"] is None or out["T02_satislarin_maliyeti_ytd"] == 0):
                 if v_ytd is not None:
                     out["T02_satislarin_maliyeti_ytd"] = scale(v_ytd)
@@ -547,6 +623,8 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
                     alternative_cost_parts.append({"label": label, "value": scale(v_ytd)})
                     if v_3m is not None:
                         alt_cogs_3m = (alt_cogs_3m or 0.0) + scale(v_3m)
+                    else:
+                        alt_cogs_3m_complete = False
             elif ln in ("finans sektoru faaliyetlerinden brut kar (zarar)", "finans sektoru faaliyetlerinden brut kar/zarar"):
                 financial_gross = scale(v_ytd)
                 if v_ytd not in (None, 0):
@@ -564,6 +642,20 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
                     if v_ytd is not None:
                         out["T03_brut_kar_ytd"] = scale(v_ytd)
                         out["T03_brut_kar_3m_raw"] = scale(v_3m)
+            elif ln in (
+                "pazarlama giderleri",
+                "pazarlama, satis ve dagitim giderleri (-)",
+                "pazarlama giderleri (-)",
+                "pazarlama, satis ve dagitim giderleri",
+            ) and out["F16_pazarlama_giderleri_ytd"] is None:
+                out["F16_pazarlama_giderleri_ytd"] = scale(v_ytd)
+                out["F16_pazarlama_giderleri_3m_raw"] = scale(v_3m)
+            elif ln in ("genel yonetim giderleri (-)", "genel yonetim giderleri") and out["F16_genel_yonetim_giderleri_ytd"] is None:
+                out["F16_genel_yonetim_giderleri_ytd"] = scale(v_ytd)
+                out["F16_genel_yonetim_giderleri_3m_raw"] = scale(v_3m)
+            elif ln in ("arastirma ve gelistirme giderleri (-)", "arastirma ve gelistirme giderleri") and out["F16_ar_ge_giderleri_ytd"] is None:
+                out["F16_ar_ge_giderleri_ytd"] = scale(v_ytd)
+                out["F16_ar_ge_giderleri_3m_raw"] = scale(v_3m)
             elif ln in ("faaliyet kari/zarari", "esas faaliyet kari/zarari", "esas faaliyet kari (zarari)", "net faaliyet k/z", "esas faaliyet kari veya zarari") and out["T04_esas_faaliyet_kari_ytd"] is None:
                 if v_ytd is not None:
                     out["T04_esas_faaliyet_kari_ytd"] = scale(v_ytd)
@@ -576,10 +668,52 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
                 if v_ytd is not None:
                     out["T05_finansman_gideri_ytd"] = scale(v_ytd)
                     out["T05_finansman_gideri_3m_raw"] = scale(v_3m)
-            elif ("surdurulen faaliyetler vergi" in ln or ln == "vergi karsiligi (-)") and not ln.startswith("-") and out["T06_vergi_gideri_geliri_ytd"] is None:
+            elif ln in (
+                "surdurulen faaliyetler vergi oncesi kari/zarari",
+                "surdurulen faaliyetler vergi oncesi kari (zarari)",
+                "surdurulen faaliyetler vergi oncesi k/z",
+                "vergi oncesi kar/zarar",
+                "vergi oncesi kar (zarar)",
+            ) and out["vergi_oncesi_kar_zarar_ytd"] is None:
+                out["vergi_oncesi_kar_zarar_ytd"] = scale(v_ytd)
+                out["vergi_oncesi_kar_zarar_3m_raw"] = scale(v_3m)
+            elif ln in (
+                "surdurulen faaliyetler vergi (gideri) geliri",
+                "surdurulen faaliyetler vergi gelir/gideri",
+                "surdurulen faaliyetler vergi gideri/geliri",
+                "surdurulen faaliyetler vergi gideri (-)/geliri",
+                "surdurulen faaliyetler vergi karsiligi (+-)",
+                "vergi karsiligi (-)",
+                "vergi gideri/geliri",
+                "vergi (gideri) geliri",
+            ) and out["T06_vergi_gideri_geliri_ytd"] is None:
+                out["T06_vergi_gideri_geliri_ytd"] = scale(v_ytd)
+                out["T06_vergi_gideri_geliri_3m_raw"] = scale(v_3m)
+            elif ln in (
+                "donem vergi (gideri) geliri",
+                "- donem vergi gideri (-)/geliri",
+                "- donem vergi gelir/gideri",
+                "donem vergi gideri (-)/geliri",
+                "donem vergi gelir/gideri",
+                "cari vergi karsiligi",
+                "- donem vergi (gideri) geliri",
+            ) and donem_vergi_ytd is None:
                 if v_ytd is not None:
-                    out["T06_vergi_gideri_geliri_ytd"] = scale(v_ytd)
-                    out["T06_vergi_gideri_geliri_3m_raw"] = scale(v_3m)
+                    donem_vergi_ytd = scale(v_ytd)
+                    donem_vergi_3m = scale(v_3m)
+            elif ln in (
+                "ertelenmis vergi (gideri) geliri",
+                "- ertelenmis vergi gideri (-)/geliri",
+                "- ertelenmis vergi gelir/gideri",
+                "ertelenmis vergi gideri (-)/geliri",
+                "ertelenmis vergi gelir/gideri",
+                "ertelenmis vergi gelir etkisi (-)",
+                "ertelenmis vergi gider etkisi (+)",
+                "- ertelenmis vergi (gideri) geliri",
+            ) and ertelenmis_vergi_ytd is None:
+                if v_ytd is not None:
+                    ertelenmis_vergi_ytd = scale(v_ytd)
+                    ertelenmis_vergi_3m = scale(v_3m)
             elif ln in (
                 "donem kari/zarari",
                 "donem kari (zarari)",
@@ -589,10 +723,12 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
                 "net donem kari (zarari)",
                 "donem net kari veya zarari",
             ):
-                if out["T07_donem_net_kari_ytd"] is None or ln in ("donem kari/zarari", "donem kari (zarari)", "donem net kari veya zarari"):
+                is_continuing_only = ln.startswith("surdurulen faaliyetler")
+                if out["T07_donem_net_kari_ytd"] is None or (net_kar_from_continuing and not is_continuing_only):
                     if v_ytd is not None:
                         out["T07_donem_net_kari_ytd"] = scale(v_ytd)
                         out["T07_donem_net_kari_3m_raw"] = scale(v_3m)
+                        net_kar_from_continuing = is_continuing_only
             elif ln in ("ana ortaklik paylari", "- ana ortaklik paylari") and out["T07_ana_ortaklik_net_kari_ytd"] is None:
                 if v_ytd is not None:
                     out["T07_ana_ortaklik_net_kari_ytd"] = scale(v_ytd)
@@ -613,19 +749,85 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
             total = cash_flow_total(ln)
             if total is not None:
                 field, priority = total
-                if v_ytd is not None and priority >= cf_priorities.get(field, 0):
+                prev_prio = cf_priorities.get(field, 0)
+                if v_ytd is not None and (priority > prev_prio or (priority == prev_prio and ln != cf_matched_labels.get(field))):
                     out[field] = scale(v_ytd)
                     cf_priorities[field] = priority
+                    cf_matched_labels[field] = ln
                 continue
+            if ln in (
+                "amortisman ve itfa gideri ile ilgili duzeltmeler",
+                "- amortisman ve itfa giderleri ile ilgili duzeltmeler",
+                "amortisman ve itfa paylari",
+                "- maddi duran varliklarin amortismani",
+                "amortisman ve itfa giderleri",
+                "maddi duran varliklarin amortismani",
+                "amortisman gideri",
+                "amortismanlar (+)",
+                "amortisman (+)",
+            ) and out["F15_amortisman_ve_itfa_ytd"] is None:
+                out["F15_amortisman_ve_itfa_ytd"] = scale(v_ytd)
+            elif ln in (
+                "maddi ve maddi olmayan duran varliklarin alimindan kaynaklanan nakit cikislari",
+                "- maddi ve maddi olmayan duran varliklarin alimindan kaynaklanan nakit cikislari",
+                "maddi ve maddi olmayan duran varlik alimlari",
+                "- maddi ve maddi olmayan duran varlik alimlari",
+                "maddi duran varlik alimlari",
+                "- maddi duran varlik alimlari",
+            ) and out["F15_capex_ytd"] is None:
+                out["F15_capex_ytd"] = scale(v_ytd)
     out.deriving()
+
+    # Vergi üst satırı boşsa (veya 0 olup alt kalemlerle çelişiyorsa) dönem + ertelenmiş vergi alt kalemlerinden türet
+    tax_parts_ytd = [x for x in (donem_vergi_ytd, ertelenmis_vergi_ytd) if x is not None]
+    if tax_parts_ytd and (
+        out["T06_vergi_gideri_geliri_ytd"] is None
+        or (out["T06_vergi_gideri_geliri_ytd"] == 0 and sum(tax_parts_ytd) != 0)
+    ):
+        out["T06_vergi_gideri_geliri_ytd"] = round(sum(tax_parts_ytd), 2)
+        tax_parts_3m = [x for x in (donem_vergi_3m, ertelenmis_vergi_3m) if x is not None]
+        if len(tax_parts_3m) == len(tax_parts_ytd):
+            out["T06_vergi_gideri_geliri_3m_raw"] = round(sum(tax_parts_3m), 2)
 
     # Hasılat yedeği (GSDDE 2010-2016 gibi esas faaliyet / denizcilik geliri alt satırda yer alanlar için)
     if (out["T01_hasilat_ytd"] is None or out["T01_hasilat_ytd"] == 0) and alt_rev_ytd is not None:
         out["T01_hasilat_ytd"] = round(alt_rev_ytd, 2)
-        out["T01_hasilat_3m_raw"] = round(alt_rev_3m, 2) if alt_rev_3m is not None else None
+        out["T01_hasilat_3m_raw"] = round(alt_rev_3m, 2) if (alt_rev_3m is not None and alt_rev_3m_complete) else None
     if (out["T02_satislarin_maliyeti_ytd"] is None or out["T02_satislarin_maliyeti_ytd"] == 0) and alt_cogs_ytd is not None:
         out["T02_satislarin_maliyeti_ytd"] = round(alt_cogs_ytd, 2)
-        out["T02_satislarin_maliyeti_3m_raw"] = round(alt_cogs_3m, 2) if alt_cogs_3m is not None else None
+        out["T02_satislarin_maliyeti_3m_raw"] = round(alt_cogs_3m, 2) if (alt_cogs_3m is not None and alt_cogs_3m_complete) else None
+
+    # TUPRS 2010-2012 gibi 'Satış Gelirleri' altında ayrı 'Hizmet Gelirleri' raporlayıp Brüt Kâr'a dahil edenler:
+    if (
+        hizmet_rev_ytd is not None
+        and out["T01_hasilat_ytd"] is not None
+        and out["T02_satislarin_maliyeti_ytd"] is not None
+        and out["T03_brut_kar_ytd"] is not None
+    ):
+        current_gap = abs((out["T01_hasilat_ytd"] + out["T02_satislarin_maliyeti_ytd"]) - out["T03_brut_kar_ytd"])
+        with_hizmet_gap = abs(
+            (out["T01_hasilat_ytd"] + hizmet_rev_ytd + out["T02_satislarin_maliyeti_ytd"]) - out["T03_brut_kar_ytd"]
+        )
+        if current_gap > max(1.0, mult) and with_hizmet_gap <= max(1.0, mult):
+            out["T01_hasilat_ytd"] = round(out["T01_hasilat_ytd"] + hizmet_rev_ytd, 2)
+            alternative_revenue_parts.append({"label": hizmet_rev_label, "value": hizmet_rev_ytd})
+            if out["T01_hasilat_3m_raw"] is not None and hizmet_rev_3m is not None:
+                out["T01_hasilat_3m_raw"] = round(out["T01_hasilat_3m_raw"] + hizmet_rev_3m, 2)
+            elif out["T01_hasilat_3m_raw"] is not None and hizmet_rev_3m is None:
+                out["T01_hasilat_3m_raw"] = None
+
+    # RYSAS 2011Q1 gibi 'Satışların Maliyeti (-)' satırı pozitif girildiği halde Hasılat - Maliyet == Brüt Kâr olanlar:
+    if (
+        out["T01_hasilat_ytd"] is not None
+        and out["T02_satislarin_maliyeti_ytd"] is not None
+        and out["T02_satislarin_maliyeti_ytd"] > 0
+        and out["T03_brut_kar_ytd"] is not None
+    ):
+        if abs((out["T01_hasilat_ytd"] - out["T02_satislarin_maliyeti_ytd"]) - out["T03_brut_kar_ytd"]) <= max(1.0, mult):
+            out["T02_satislarin_maliyeti_ytd"] = -out["T02_satislarin_maliyeti_ytd"]
+            if out["T02_satislarin_maliyeti_3m_raw"] is not None and out["T02_satislarin_maliyeti_3m_raw"] > 0:
+                out["T02_satislarin_maliyeti_3m_raw"] = -out["T02_satislarin_maliyeti_3m_raw"]
+            flags.add("cogs_sign_normalized_from_gross_profit")
 
     # Bilanço türetilmiş toplam kontrolü:
     if out["T08_nakit_ve_nakit_benzerleri"] is None and alt_cash_parts:
@@ -747,14 +949,20 @@ def derive_quarterly_flows(df):
         ("T02_satislarin_maliyeti", "T02_satislarin_maliyeti_ytd", "T02_satislarin_maliyeti_3m_raw"),
         ("T03_brut_kar", "T03_brut_kar_ytd", "T03_brut_kar_3m_raw"),
         ("T04_esas_faaliyet_kari", "T04_esas_faaliyet_kari_ytd", "T04_esas_faaliyet_kari_3m_raw"),
+        ("F16_pazarlama_giderleri", "F16_pazarlama_giderleri_ytd", "F16_pazarlama_giderleri_3m_raw"),
+        ("F16_genel_yonetim_giderleri", "F16_genel_yonetim_giderleri_ytd", "F16_genel_yonetim_giderleri_3m_raw"),
+        ("F16_ar_ge_giderleri", "F16_ar_ge_giderleri_ytd", "F16_ar_ge_giderleri_3m_raw"),
         ("T05_finansman_gideri", "T05_finansman_gideri_ytd", "T05_finansman_gideri_3m_raw"),
         ("F07_finansman_geliri", "F07_finansman_geliri_ytd", "F07_finansman_geliri_3m_raw"),
+        ("vergi_oncesi_kar_zarar", "vergi_oncesi_kar_zarar_ytd", "vergi_oncesi_kar_zarar_3m_raw"),
         ("T06_vergi_gideri_geliri", "T06_vergi_gideri_geliri_ytd", "T06_vergi_gideri_geliri_3m_raw"),
         ("T07_donem_net_kari", "T07_donem_net_kari_ytd", "T07_donem_net_kari_3m_raw"),
         ("T07_ana_ortaklik_net_kari", "T07_ana_ortaklik_net_kari_ytd", "T07_ana_ortaklik_net_kari_3m_raw"),
     ]
 
     for base_col, ytd_col, raw3m_col in is_flow_items:
+        if ytd_col not in df.columns or raw3m_col not in df.columns:
+            continue
         prev_ytd = df.groupby(["ticker", "year"])[ytd_col].shift(1)
         diff_ytd = df[ytd_col] - prev_ytd
         q_col = f"{base_col}_ceyrek"
@@ -777,8 +985,16 @@ def derive_quarterly_flows(df):
             quarter_methods.setdefault(identity, {})[q_col] = {"method": method, "current_component": ytd_col, "previous_component_required": method == "ytd_difference"}
         df.drop(columns=[raw3m_col], inplace=True)
 
-    for cf_base in ["T15_isletme_nakit_akisi", "T16_yatirim_nakit_akisi", "T17_finansman_nakit_akisi"]:
+    for cf_base in [
+        "T15_isletme_nakit_akisi",
+        "T16_yatirim_nakit_akisi",
+        "T17_finansman_nakit_akisi",
+        "F15_amortisman_ve_itfa",
+        "F15_capex",
+    ]:
         ytd_col = f"{cf_base}_ytd"
+        if ytd_col not in df.columns:
+            continue
         prev_ytd = df.groupby(["ticker", "year"])[ytd_col].shift(1)
         df[f"{cf_base}_ceyrek"] = np.where(df["quarter"] == 1, df[ytd_col], df[ytd_col] - prev_ytd)
         needs_previous_date |= (df["quarter"] != 1) & df[f"{cf_base}_ceyrek"].notna()
@@ -858,16 +1074,29 @@ def build_dataset(*, return_quality=False):
                         meta, rows = extract_rows_from_html_xls(fp)
 
                     orig_unit, mult = detect_unit_multiplier(meta.get("original_unit", "TL"))
+                    manual_unit_override = False
+                    unit_correction_evidence_at = ""
                     # KAP ham Excel'inde Raporlama Birimi 'TL' yazılıp gerçekte Bin TL veya Milyon TL girilen (veya tersi) raporların düzeltmesi:
                     if (ticker, yr, q) in (("THYAO", 2015, 4), ("THYAO", 2016, 1)):
                         orig_unit, mult = "1.000.000 TL (Ham: TL)", 1_000_000.0
+                        manual_unit_override = True
                     elif (ticker, yr, q) in (("TOASO", 2013, 1), ("TOASO", 2014, 3)):
                         orig_unit, mult = "1.000 TL (Ham: TL)", 1_000.0
+                        manual_unit_override = True
                     elif (ticker, yr, q) == ("SARKY", 2017, 2):
                         orig_unit, mult = "TL (İlk bildirim 626777 birim düzeltmesi: 626866)", 1.0
+                        manual_unit_override = True
+                        unit_correction_evidence_at = by_disc_idx.get("626866", "2017-08-21 20:29:20")
 
                     report_audit = {}
                     fin = parse_financial_rows(rows, mult, report_audit)
+                    if manual_unit_override:
+                        report_audit["flags"].append("manual_unit_override")
+                    if unit_correction_evidence_at:
+                        report_audit["unit_correction_evidence"] = {
+                            "disclosure_index": "626866",
+                            "evidence_available_at": unit_correction_evidence_at,
+                        }
                     report_audit["embedded_csv_rows_recovered"] = meta.get("embedded_csv_rows_recovered", 0)
                     row_data["source_file"] = str(fp.relative_to(ROOT_DIR))
                     row_data["source_sha256"] = sha256(fp)
@@ -901,7 +1130,11 @@ def build_dataset(*, return_quality=False):
                     selected_dates = [p for p in (pub_by_idx, meta.get("financial_report_published_at", "")) if p]
                     selected_pub = max(selected_dates) if selected_dates else ""
                     row_data.update(publication_metadata(selected_pub, cat_pub, hdr_pub))
-                    row_data["source_available_at"] = max(row_data["report_available_at"], report_audit.get("correction_evidence", {}).get("evidence_available_at", ""))
+                    row_data["source_available_at"] = max(
+                        row_data["report_available_at"],
+                        report_audit.get("correction_evidence", {}).get("evidence_available_at", ""),
+                        report_audit.get("unit_correction_evidence", {}).get("evidence_available_at", ""),
+                    )
                     if row_data["publication_status"] == "selected_version_later_than_earliest":
                         report_audit["flags"].append("selected_version_later_than_earliest")
                     row_data["qa_flags"] = "|".join(sorted(set(report_audit["flags"])))
@@ -953,6 +1186,11 @@ def build_dataset(*, return_quality=False):
     df["F13_net_borc"] = df["T12_finansal_borclar"] - df["T08_nakit_ve_nakit_benzerleri"]
     df["F14_ozkaynak_aktif_orani"] = df["T14_toplam_ozkaynaklar"] / assets
     df["F14_borc_ozkaynak_orani"] = df["T13_toplam_yukumlulukler"] / equity
+    df["F15_maddi_duran_varlik_aktif_orani"] = df["F15_maddi_duran_varliklar"] / assets
+    df["F15_capex_hasilat_orani"] = df["F15_capex_ceyrek"].abs() / rev_q
+    df["F16_pazarlama_hasilat_orani"] = df["F16_pazarlama_giderleri_ceyrek"].abs() / rev_q
+    df["F16_genel_yonetim_hasilat_orani"] = df["F16_genel_yonetim_giderleri_ceyrek"].abs() / rev_q
+    df["F18_ertelenmis_gelir_kisa_aktif_orani"] = df["F18_kisa_vadeli_ertelenmis_gelir_ve_avanslar"] / assets
 
     # ---------------- DIŞSAL MAKRO VE KÜRESEL RİSK SERİLERİNİ BİRLEŞTİRME ----------------
     df = merge_external_macro_and_risk(df)
@@ -1000,7 +1238,17 @@ def merge_external_macro_and_risk(df: pd.DataFrame) -> pd.DataFrame:
         df["macro_observation_month"] = (pd.PeriodIndex(df["t0_ym"], freq="M") - 1).strftime("%Y-%m")
         df["industrial_production_observation_month"] = (pd.PeriodIndex(df["t0_ym"], freq="M") - 2).strftime("%Y-%m")
 
-        lag1_cols = ["M03_Faiz_Orani", "M03_Faiz_3Aylik_Degisim", "M04_TUFE_YoY", "M05_YIUFE_YoY", "GPR", "GPRT", "GPRA", "GEPU_ppp"]
+        lag1_cols = [
+            "M03_Faiz_Orani",
+            "M03_Faiz_3Aylik_Degisim",
+            "M04_TUFE_YoY",
+            "M05_YIUFE_YoY",
+            "GPR",
+            "GPRC_TUR",
+            "GPRT",
+            "GPRA",
+            "GEPU_ppp",
+        ]
         m_lag1 = m_df[["ym_lag1"] + [c for c in lag1_cols if c in m_df.columns]].rename(columns={"ym_lag1": "t0_ym"})
         df = df.merge(m_lag1, on="t0_ym", how="left")
 
@@ -1011,6 +1259,7 @@ def merge_external_macro_and_risk(df: pd.DataFrame) -> pd.DataFrame:
         df.rename(
             columns={
                 "GPR": "R01_GPR",
+                "GPRC_TUR": "R01_GPRC_TUR",
                 "GPRT": "R04_GPRT",
                 "GPRA": "R04_GPRA",
                 "GEPU_ppp": "R02_GEPU_ppp",
@@ -1023,21 +1272,47 @@ def merge_external_macro_and_risk(df: pd.DataFrame) -> pd.DataFrame:
         d_df = pd.read_csv(daily_path)
         d_df["date"] = pd.to_datetime(d_df["date"])
         d_df.sort_values("date", inplace=True)
-        d_df["M01_USDTRY_seviye"] = d_df["USDTRY"]
-        d_df["M02_EURTRY_seviye"] = d_df["EURTRY"]
+        d_df_fx = d_df[d_df["USDTRY_obs"].notna()].copy() if "USDTRY_obs" in d_df.columns else d_df.copy()
+        d_df_fx["M01_USDTRY_seviye"] = d_df_fx["USDTRY"]
+        d_df_fx["M02_EURTRY_seviye"] = d_df_fx["EURTRY"]
         for raw_col, target_col in (("USDTRY", "M01_USDTRY_90g_degisim_pct"), ("EURTRY", "M02_EURTRY_90g_degisim_pct")):
-            changes = calendar_fx_change(d_df, raw_col).rename(columns={"change": target_col})
-            d_df = d_df.merge(changes, on="date", how="left")
+            changes = calendar_fx_change(d_df_fx, raw_col).rename(columns={"change": target_col})
+            d_df_fx = d_df_fx.merge(changes, on="date", how="left")
         df["t0_dt"] = pd.to_datetime(df["period_end_date"])
         fx_cols = ["date", "M01_USDTRY_seviye", "M01_USDTRY_90g_degisim_pct", "M02_EURTRY_seviye", "M02_EURTRY_90g_degisim_pct"]
-        merged = pd.merge_asof(df.sort_values("t0_dt"), d_df[fx_cols].sort_values("date"), left_on="t0_dt", right_on="date", direction="backward")
+        merged = pd.merge_asof(df.sort_values("t0_dt"), d_df_fx[fx_cols].sort_values("date"), left_on="t0_dt", right_on="date", direction="backward")
         ofr = ofr_available_series(d_df)
         merged = pd.merge_asof(merged.sort_values("t0_dt"), ofr, left_on="t0_dt", right_on="ofr_assumed_available_at", direction="backward")
         for col in ("ofr_observation_date", "ofr_assumed_available_at"):
             merged[col] = merged[col].dt.strftime("%Y-%m-%d")
+        if "GPRD" in d_df.columns:
+            gprd = gprd_available_series(d_df)
+            merged = pd.merge_asof(
+                merged.sort_values("t0_dt"),
+                gprd,
+                left_on="t0_dt",
+                right_on="gprd_assumed_available_at",
+                direction="backward",
+            )
+            for col in ("gprd_observation_date", "gprd_assumed_available_at"):
+                merged[col] = merged[col].dt.strftime("%Y-%m-%d")
         merged.drop(columns=["t0_dt", "date"], inplace=True)
+
+        # Compute in-quarter trajectory features once per unique (year, quarter, period_end_date)
+        unique_q = merged[["year", "quarter", "period_end_date"]].drop_duplicates().sort_values(["year", "quarter"])
+        traj_rows = []
+        for _, q_row in unique_q.iterrows():
+            yr, q_num = int(q_row["year"]), int(q_row["quarter"])
+            q_start_dt = pd.Timestamp(f"{yr}-{QUARTER_START_DATES[q_num]}")
+            p_end_dt = pd.Timestamp(q_row["period_end_date"])
+            traj = compute_in_quarter_trajectories(d_df, q_start_dt, p_end_dt, p_end_dt)
+            traj["year"] = yr
+            traj["quarter"] = q_num
+            traj_rows.append(traj)
+        traj_df = pd.DataFrame(traj_rows)
+        merged = merged.merge(traj_df, on=["year", "quarter"], how="left")
         df = merged.sort_values(["ticker", "year", "quarter"]).reset_index(drop=True)
-    df["macro_availability_policy"] = "assumed_month_lags_latest_vintage;ofr_us_federal_calendar_estimate"
+    df["macro_availability_policy"] = "assumed_month_lags_latest_vintage;ofr_us_federal_calendar_estimate;gprd_7d_weekly_lag"
 
     return df
 

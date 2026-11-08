@@ -1,6 +1,6 @@
 {
   "rows": 1320,
-  "columns": 110,
+  "columns": 157,
   "missing_by_column": {
     "ticker": 0,
     "company_name": 0,
@@ -27,16 +27,22 @@
     "T02_satislarin_maliyeti_ytd": 1,
     "T03_brut_kar_ytd": 0,
     "T04_esas_faaliyet_kari_ytd": 1,
+    "F16_pazarlama_giderleri_ytd": 120,
+    "F16_genel_yonetim_giderleri_ytd": 8,
+    "F16_ar_ge_giderleri_ytd": 448,
     "T05_finansman_gideri_ytd": 11,
     "F07_finansman_geliri_ytd": 107,
-    "T06_vergi_gideri_geliri_ytd": 0,
+    "vergi_oncesi_kar_zarar_ytd": 0,
+    "T06_vergi_gideri_geliri_ytd": 8,
     "T07_donem_net_kari_ytd": 0,
-    "T07_ana_ortaklik_net_kari_ytd": 133,
+    "T07_ana_ortaklik_net_kari_ytd": 140,
     "T08_nakit_ve_nakit_benzerleri": 0,
     "F10_kisa_vadeli_ticari_alacaklar": 129,
     "F10_uzun_vadeli_ticari_alacaklar": 659,
     "T09_ticari_alacaklar": 750,
     "T10_stoklar": 27,
+    "F15_maddi_duran_varliklar": 0,
+    "F15_maddi_olmayan_duran_varliklar": 13,
     "donen_varliklar": 8,
     "duran_varliklar": 8,
     "T11_toplam_varliklar": 0,
@@ -46,6 +52,8 @@
     "kisa_vadeli_ticari_borclar": 143,
     "uzun_vadeli_ticari_borclar": 815,
     "F12_ticari_borclar": 860,
+    "F18_kisa_vadeli_ertelenmis_gelir_ve_avanslar": 423,
+    "F18_uzun_vadeli_ertelenmis_gelir_ve_avanslar": 896,
     "kisa_vadeli_yukumlulukler": 8,
     "uzun_vadeli_yukumlulukler": 8,
     "T13_toplam_yukumlulukler": 0,
@@ -56,23 +64,31 @@
     "T15_isletme_nakit_akisi_ytd": 1,
     "T16_yatirim_nakit_akisi_ytd": 5,
     "T17_finansman_nakit_akisi_ytd": 8,
+    "F15_amortisman_ve_itfa_ytd": 160,
+    "F15_capex_ytd": 292,
     "T01_hasilat_ceyrek": 0,
     "T02_satislarin_maliyeti_ceyrek": 1,
     "T03_brut_kar_ceyrek": 0,
     "T04_esas_faaliyet_kari_ceyrek": 1,
+    "F16_pazarlama_giderleri_ceyrek": 120,
+    "F16_genel_yonetim_giderleri_ceyrek": 8,
+    "F16_ar_ge_giderleri_ceyrek": 453,
     "T05_finansman_gideri_ceyrek": 16,
     "F07_finansman_geliri_ceyrek": 110,
-    "T06_vergi_gideri_geliri_ceyrek": 0,
+    "vergi_oncesi_kar_zarar_ceyrek": 0,
+    "T06_vergi_gideri_geliri_ceyrek": 10,
     "T07_donem_net_kari_ceyrek": 0,
-    "T07_ana_ortaklik_net_kari_ceyrek": 134,
+    "T07_ana_ortaklik_net_kari_ceyrek": 142,
     "T15_isletme_nakit_akisi_ceyrek": 2,
     "T16_yatirim_nakit_akisi_ceyrek": 10,
     "T17_finansman_nakit_akisi_ceyrek": 11,
+    "F15_amortisman_ve_itfa_ceyrek": 178,
+    "F15_capex_ceyrek": 325,
     "available_at": 0,
     "F07_net_finansman_ytd": 111,
     "F07_net_finansman_ceyrek": 115,
-    "hisse_basina_kar_ytd": 134,
-    "hisse_basina_kar_ceyrek": 135,
+    "hisse_basina_kar_ytd": 141,
+    "hisse_basina_kar_ceyrek": 143,
     "F01_hasilat_qoq_buyume": 30,
     "F01_hasilat_yoy_buyume": 120,
     "F03_brut_kar_marji": 84,
@@ -89,6 +105,11 @@
     "F13_net_borc": 139,
     "F14_ozkaynak_aktif_orani": 0,
     "F14_borc_ozkaynak_orani": 0,
+    "F15_maddi_duran_varlik_aktif_orani": 0,
+    "F15_capex_hasilat_orani": 325,
+    "F16_pazarlama_hasilat_orani": 120,
+    "F16_genel_yonetim_hasilat_orani": 8,
+    "F18_ertelenmis_gelir_kisa_aktif_orani": 423,
     "macro_observation_month": 0,
     "industrial_production_observation_month": 0,
     "M03_Faiz_Orani": 0,
@@ -96,6 +117,7 @@
     "M04_TUFE_YoY": 0,
     "M05_YIUFE_YoY": 0,
     "R01_GPR": 0,
+    "R01_GPRC_TUR": 0,
     "R04_GPRT": 0,
     "R04_GPRA": 0,
     "R02_GEPU_ppp": 0,
@@ -108,17 +130,42 @@
     "R03_OFR_FSI": 0,
     "ofr_assumed_available_at": 0,
     "R03_OFR_FSI_60d_mean": 0,
+    "gprd_observation_date": 0,
+    "R01_GPRD": 0,
+    "R04_GPRD_ACT": 0,
+    "R04_GPRD_THREAT": 0,
+    "gprd_assumed_available_at": 0,
+    "M01_USDTRY_q_mean": 0,
+    "M01_USDTRY_q_last": 0,
+    "M01_USDTRY_q_std": 0,
+    "M01_USDTRY_q_max": 0,
+    "M01_USDTRY_last15d_diff": 0,
+    "M02_EURTRY_q_mean": 0,
+    "M02_EURTRY_q_last": 0,
+    "M02_EURTRY_q_std": 0,
+    "M02_EURTRY_q_max": 0,
+    "M02_EURTRY_last15d_diff": 0,
+    "R03_OFR_FSI_q_mean": 0,
+    "R03_OFR_FSI_q_last": 0,
+    "R03_OFR_FSI_q_std": 0,
+    "R03_OFR_FSI_q_max": 0,
+    "R03_OFR_FSI_last15d_diff": 0,
+    "R01_GPRD_q_mean": 0,
+    "R01_GPRD_q_last": 0,
+    "R01_GPRD_q_std": 0,
+    "R01_GPRD_q_max": 0,
+    "R01_GPRD_last15d_diff": 0,
     "macro_availability_policy": 0,
     "X02_faiz_degisimi_x_finansal_borc_aktif": 139,
     "X03_ofr_fsi_x_kisa_borc_aktif": 23
   },
   "missing_reason_counts": {
-    "source_value_unavailable": 976,
-    "missing_component": 4349,
-    "unresolved_source_or_mapping": 1895,
+    "source_value_unavailable": 1544,
+    "missing_component": 5240,
+    "unresolved_source_or_mapping": 3702,
+    "missing_quarter_component": 1387,
     "insufficient_history": 150,
     "external_observation_unavailable": 30,
-    "missing_quarter_component": 285,
     "income_statement_scope_mismatch": 84
   },
   "flagged_reports": [
@@ -219,6 +266,22 @@
       ]
     },
     {
+      "ticker": "THYAO",
+      "year": 2015,
+      "quarter": 4,
+      "flags": [
+        "manual_unit_override"
+      ]
+    },
+    {
+      "ticker": "THYAO",
+      "year": 2016,
+      "quarter": 1,
+      "flags": [
+        "manual_unit_override"
+      ]
+    },
+    {
       "ticker": "RYSAS",
       "year": 2010,
       "quarter": 1,
@@ -240,6 +303,14 @@
       "quarter": 3,
       "flags": [
         "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "RYSAS",
+      "year": 2011,
+      "quarter": 1,
+      "flags": [
+        "cogs_sign_normalized_from_gross_profit"
       ]
     },
     {
@@ -640,7 +711,8 @@
       "year": 2013,
       "quarter": 1,
       "flags": [
-        "mixed_activity_income_statement"
+        "mixed_activity_income_statement",
+        "manual_unit_override"
       ]
     },
     {
@@ -689,7 +761,8 @@
       "year": 2014,
       "quarter": 3,
       "flags": [
-        "mixed_activity_income_statement"
+        "mixed_activity_income_statement",
+        "manual_unit_override"
       ]
     },
     {
@@ -964,6 +1037,14 @@
       "quarter": 3,
       "flags": [
         "selected_version_later_than_earliest"
+      ]
+    },
+    {
+      "ticker": "SARKY",
+      "year": 2017,
+      "quarter": 2,
+      "flags": [
+        "manual_unit_override"
       ]
     }
   ],

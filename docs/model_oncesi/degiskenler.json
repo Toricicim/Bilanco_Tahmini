@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
-  "version": "0.1.0",
-  "updated_at": "2026-11-06",
+  "version": "0.2.0",
+  "updated_at": "2026-11-08",
   "purpose": "Finans dışı BIST şirketlerinin açıklanmamış hedef çeyreğine ait ana finansal kalemleri tahmin etmek için yaşayan aday girdi sözlüğü. Şirket özelinde kurulmaz; savunma yalnızca aynı olayın farklı sonuç doğurabileceği faaliyetlerden biridir. Hisse fiyatı yönü bu kayıt kapsamındaki hedef değildir.",
   "confirmed_input_ids": [
     "R01",
@@ -711,16 +711,17 @@
       "label": "Yatırım, duran varlık ve amortisman",
       "priority": "P1",
       "selection_status": "candidate",
-      "data_status": "unmapped",
+      "data_status": "partial",
       "evidence_status": "untested",
       "direction_policy": "learn_from_data",
       "definition": "Üretim kapasitesi yatırımı ve varlık tüketimi.",
       "raw_components": [
         "cash_capex",
         "property_plant_equipment",
+        "intangible_assets",
         "depreciation"
       ],
-      "representation": "CAPEX/aktif; PPE/aktif; amortisman ayrı.",
+      "representation": "CAPEX/hasılat; maddi ve maddi olmayan duran varlık/aktif; amortisman ayrı.",
       "unit": "kaynak birimi / uygun oran",
       "period_type": "mixed",
       "related_targets": [
@@ -742,9 +743,9 @@
       "missing_policy": "Eksik sıfır değildir; neden, kapsam ve gözlem yaşı saklanır. Uygulanamaz ile açıklanmamış ayrı.",
       "caveat": "Nakit CAPEX toplam yatırım nakit akışı veya toplam yatırım taahhüdüyle aynı değildir.",
       "owner": null,
-      "last_reviewed": "2026-11-06",
-      "definition_version": 1,
-      "decision_note": "Beş uzman incelemesinden türetilmiş aday; öncelik performans garantisi değildir.",
+      "last_reviewed": "2026-11-08",
+      "definition_version": 2,
+      "decision_note": "Mevcut XLS dosyalarından maddi (%100) ve maddi olmayan (%99) duran varlıklar, amortisman (%86,8) ve CAPEX (%85,2) çıkarıldı.",
       "dependency_policy": "all"
     },
     {
@@ -753,7 +754,7 @@
       "label": "Faaliyet giderleri ve Ar-Ge",
       "priority": "P1",
       "selection_status": "candidate",
-      "data_status": "unmapped",
+      "data_status": "partial",
       "evidence_status": "untested",
       "direction_policy": "learn_from_data",
       "definition": "Faaliyet giderleri ve giderleşen/aktifleştirilen Ar-Ge.",
@@ -763,7 +764,7 @@
         "expensed_rd",
         "capitalized_rd"
       ],
-      "representation": "Satış veya aktif ölçekli, ayrı kalemler.",
+      "representation": "Pazarlama, genel yönetim ve Ar-Ge giderleri; satış veya aktif ölçekli ayrı kalemler.",
       "unit": "kaynak birimi / uygun oran",
       "period_type": "mixed",
       "related_targets": [
@@ -786,9 +787,9 @@
       "missing_policy": "Eksik sıfır değildir; neden, kapsam ve gözlem yaşı saklanır. Uygulanamaz ile açıklanmamış ayrı.",
       "caveat": "Ar-Ge aktifleştirmesi kâr ve nakdi farklı etkiler; aynı kalem gibi toplanmaz.",
       "owner": null,
-      "last_reviewed": "2026-11-06",
-      "definition_version": 1,
-      "decision_note": "Beş uzman incelemesinden türetilmiş aday; öncelik performans garantisi değildir.",
+      "last_reviewed": "2026-11-08",
+      "definition_version": 2,
+      "decision_note": "Mevcut XLS gelir tablolarından pazarlama (%90,9), genel yönetim (%99,4) ve Ar-Ge (%66,1) giderleri çıkarıldı.",
       "dependency_policy": "all"
     },
     {
@@ -837,7 +838,7 @@
       "label": "Müşteri avansı ve sözleşme yükümlülüğü",
       "priority": "P1",
       "selection_status": "candidate",
-      "data_status": "unmapped",
+      "data_status": "partial",
       "evidence_status": "untested",
       "direction_policy": "learn_from_data",
       "definition": "Müşteri ön finansmanı ve henüz ifa edilmemiş yükümlülükler.",
@@ -845,7 +846,7 @@
         "contract_liabilities",
         "customer_advances"
       ],
-      "representation": "Ayrı bakiyeler/aktif ve değişim.",
+      "representation": "Kısa ve uzun vadeli ertelenmiş gelir / alınan avans bakiyeleri ve aktif oranı.",
       "unit": "kaynak birimi / uygun oran",
       "period_type": "balance",
       "related_targets": [
@@ -867,9 +868,9 @@
       "missing_policy": "Eksik sıfır değildir; neden, kapsam ve gözlem yaşı saklanır. Uygulanamaz ile açıklanmamış ayrı.",
       "caveat": "Avans nakit yaratabilir; aynı anda gelir veya kâr sayılmaz.",
       "owner": null,
-      "last_reviewed": "2026-11-06",
-      "definition_version": 1,
-      "decision_note": "Beş uzman incelemesinden türetilmiş aday; öncelik performans garantisi değildir.",
+      "last_reviewed": "2026-11-08",
+      "definition_version": 2,
+      "decision_note": "Mevcut XLS bilançolarından kısa (%68,0) ve uzun (%32,1) vadeli ertelenmiş gelir/alınan sipariş avansı kalemleri çift sayım korumalı olarak çıkarıldı.",
       "dependency_policy": "all"
     },
     {
@@ -1283,16 +1284,18 @@
       "label": "GPR: jeopolitik risk",
       "priority": "P0",
       "selection_status": "accepted",
-      "data_status": "unmapped",
+      "data_status": "partial",
       "evidence_status": "untested",
       "direction_policy": "learn_from_data",
-      "definition": "Jeopolitik tehdit ve olaylarla ilişkili haber yoğunluğu.",
+      "definition": "Jeopolitik tehdit ve olaylarla ilişkili haber yoğunluğu (küresel GPR, Türkiye GPRC_TUR ve günlük GPRD).",
       "raw_components": [
         "global_gpr",
+        "gprc_tur",
+        "daily_gprd",
         "country_gpr_optional"
       ],
-      "representation": "Son yayımlanmış aylık küresel seviye; ülke serileri profil uzantısında.",
-      "unit": "endeks",
+      "representation": "Son yayımlanmış aylık küresel seviye (GPR), Türkiye makale payı (GPRC_TUR) ve günlük GPRD (+7g gecikmeli) çeyrek içi dağılım özellikleri.",
+      "unit": "endeks / makale payı (%)",
       "period_type": "monthly",
       "related_targets": [
         "T01",
@@ -1321,11 +1324,11 @@
       "availability_rule": "available_at <= t0; sonradan açıklanan/revize edilen değer geçmişe doldurulmaz",
       "allowed_history": "Hedef mali çeyrek q: ilk finansal referanslar q−1 ve q−4, sadece t0 anında biliniyorsa; makro/profil için ilk temsile bak.",
       "missing_policy": "Eksik sıfır değildir; neden, kapsam ve gözlem yaşı saklanır. Uygulanamaz ile açıklanmamış ayrı.",
-      "caveat": "Aylık ay başı, günlük küresel seri haftalık güncellenir; gözlem/yayım ve eski sürüm ayrılır.",
+      "caveat": "Aylık ay başı, günlük küresel seri haftalık (+7g gecikme varsayımı) güncellenir; GPRC_TUR 100 bazlı değil % makale payıdır.",
       "owner": null,
-      "last_reviewed": "2026-11-06",
-      "definition_version": 1,
-      "decision_note": "Kullanıcı hazır endeksi kullanmayı seçti; veri/vintage ve tahmin katkısı doğrulanmadı.",
+      "last_reviewed": "2026-11-08",
+      "definition_version": 2,
+      "decision_note": "Küresel GPR yanında Türkiye GPRC_TUR ve günlük GPRD (+7g gecikmeli çeyrek içi yörünge istatistikleri) veri hattına eklendi.",
       "dependency_policy": "all"
     },
     {
@@ -2089,14 +2092,16 @@
       "label": "Jeopolitik risk × faaliyet karması",
       "priority": "P1",
       "selection_status": "candidate",
-      "data_status": "unmapped",
+      "data_status": "partial",
       "evidence_status": "untested",
       "direction_policy": "learn_from_data",
-      "definition": "Aynı jeopolitik durumun farklı ürün/iş paylarına yansıması.",
+      "definition": "Aynı jeopolitik durumun farklı ürün/iş paylarına, alt sektörlere ve sipariş avansı yapısına yansıması.",
       "raw_components": [
-        "gpr_x_activity_share"
+        "gpr_x_activity_share",
+        "subsector_x_gprc_tur",
+        "f18_advances_x_gpr"
       ],
-      "representation": "GPR × açıklanmış faaliyet payları; tehdit/eylem ayrımı ayrı deney.",
+      "representation": "GPR / GPRC_TUR / GPRT / GPRA (cari ve gecikmeli) × alt sektör (SAVUNMA, ULAŞTIRMA, BİLİŞİM) ve F18 avans/ertelenmiş gelir oranı.",
       "unit": "türetilmiş",
       "period_type": "mixed",
       "related_targets": [
@@ -2113,17 +2118,19 @@
       ],
       "depends_on": [
         "R01",
-        "C02"
+        "C01",
+        "C02",
+        "F18"
       ],
       "applicability": "finans dışı şirketler",
       "availability_rule": "available_at <= t0; sonradan açıklanan/revize edilen değer geçmişe doldurulmaz",
       "allowed_history": "Hedef mali çeyrek q: ilk finansal referanslar q−1 ve q−4, sadece t0 anında biliniyorsa; makro/profil için ilk temsile bak.",
       "missing_policy": "Eksik sıfır değildir; neden, kapsam ve gözlem yaşı saklanır. Uygulanamaz ile açıklanmamış ayrı.",
-      "caveat": "Savunma gibi bir faaliyet için etki zorla pozitif yapılmaz; kategoriyle etkileşim ayrıca açık vekil olarak denenebilir.",
+      "caveat": "Savunma gibi bir faaliyet için etki zorla pozitif yapılmaz; kategori ve F18 etkileşimi veriden öğrenilir.",
       "owner": null,
-      "last_reviewed": "2026-11-06",
-      "definition_version": 1,
-      "decision_note": "Beş uzman incelemesinden türetilmiş aday; öncelik performans garantisi değildir.",
+      "last_reviewed": "2026-11-08",
+      "definition_version": 2,
+      "decision_note": "Point-in-time eğitim matrisinde C01 alt sektör ve F18 avans oranı ile GPR/GPRC_TUR/GPRT/GPRA etkileşimleri üretildi.",
       "dependency_policy": "all"
     },
     {
@@ -2527,6 +2534,11 @@
     }
   ],
   "change_log": [
+    {
+      "version": "0.2.0",
+      "date": "2026-11-08",
+      "note": "T06 vergi/EBT ayrımı, T15 işletme nakit akışı üst-toplam önceliği ve OCI bölüm koruması düzeltildi; mevcut XLS dosyalarından F15, F16 ve F18 kalemleri çıkarıldı; GPRC_TUR, günlük GPRD (+7g gecikme) ve çeyrek içi dağılım özellikleri ile P0-C çok ufuklu nowcasting eğitim matrisi (X04 etkileşimleri dahil) eklendi."
+    },
     {
       "version": "0.1.0",
       "date": "2026-11-06",

@@ -49,13 +49,14 @@ Bu tablo bir durum fotoğrafıdır; sayıları gelecekte zorla eşitlemek için 
 | Konu | 8 Kasım 2026 durumu |
 |---|---|
 | Kanonik gözlem tablosu | **30 şirket × 44 çeyrek = 1.320 satır**, 2010Q1–2020Q4 |
-| Sütun | **110**; kimlik, kaynak/zaman metadatası, finansallar ve türevler dahil; 110 model girdisi değil |
+| Sütun | **157**; kimlik, kaynak/zaman metadatası, finansallar (`F15`/`F16`/`F18` dahil), `GPRC_TUR`/`GPRD`, çeyrek içi günlük yörüngeler ve türevler dahil |
+| Çoklu ufuklu eğitim matrisi | `data/training_matrix_pit_2010_2020.csv`: **5.280 satır × 113 sütun** ($t_0 \in \{+30\text{g}, +60\text{g}, +90\text{g}, +120\text{g}\}$, `available_at <= t0` ve `already_published_at_t0` maskeli) |
 | Şirket kapsamı | Altı gruptan beşer şirket; tüm BIST ve bütün raporlama şemaları değil |
 | Öncelikli dört hedef | Hasılat, dönem net kârı, toplam varlık ve toplam özkaynak; mevcut tabloda boşluk yok |
-| Kod kontrolü | **23 regresyon testi geçti** |
+| Kod kontrolü | **28 regresyon testi geçti** |
 | Üretim denetimi | `errors=[]`, **çıkış 2**: kaynak/kapsam/yayın sürümü incelemesi sürüyor |
-| Kaynak/kapsam bayrağı | **105 şirket–dönem kaydı**; bayraklar birbiriyle örtüşebilir ve hepsi kesin tutar hatası değildir |
-| Brüt kâr taraması | 1 TL eşiğinde **14 olağan kaynak uzlaşması**, **76 karma faaliyet kapsamı** incelemesi |
+| Kaynak/kapsam bayrağı | **109 şirket–dönem kaydı**; birim istisnaları (`manual_unit_override`) ve uzlaşma bayrakları dahil, hepsi kesin tutar hatası değildir |
+| Brüt kâr taraması | 1 TL eşiğinde **1 olağan kaynak farkı (`ALCTL 2010Q3`)**, **75 karma faaliyet kapsamı** incelemesi (`TUPRS 2010Q1–2012Q4` hizmet gelirleri ve `RYSAS 2011Q1` işaret farkı çözüldü) |
 | Tarihsel kullanılabilirlik | `fully_point_in_time_verified=false` |
 | Model/site | Mevcut veriyle doğrulanmış, üretime hazır model paketi ve çalışan tahmin sitesi yok |
 
@@ -66,14 +67,16 @@ Son veri hattı düzeltmesi `b02bee9`, önceki yerel belgelerin korunması `8edb
 ## 5. Dosya ve kod haritası
 
 - **Tek kanonik CSV:** `data/bist_bilanco_tahmini_2010_2020.csv`. Kök dizindeki eski kopya kaldırıldı; tekrar oluşturma.
+- **Çoklu ufuklu eğitim matrisi:** `data/training_matrix_pit_2010_2020.csv`; `scripts/build_training_matrix.py` tarafından $t_0 \in \{+30\text{g}, +60\text{g}, +90\text{g}, +120\text{g}\}$ kesimleriyle sızıntısız üretilir.
 - **Ham finansallar:** `data/kap_raw_xls/`; eski BIFF XLS ve HTML içerikli XLS biçimleri var. Bazı BIFF hücrelerinde bütün satır CSV metni olarak tutuluyor.
 - **KAP arşivleri/kataloğu:** `data/kap_zips/`, `data/kap_fr_catalog_2010_2020.json`.
-- **Dış veri önbelleği:** `data/external/`; aylık makro/risk ve günlük FX/FSI tabloları ile özgün indirmeler.
+- **Dış veri önbelleği:** `data/external/`; aylık makro/risk ve günlük FX/FSI/GPRD tabloları ile özgün indirmeler.
 - **İndirme:** `scripts/fetch_kap_financials_2010_2020.py`, `scripts/fetch_external_macro_and_risk.py`.
 - **Ayrıştırma/üretim:** `scripts/parse_and_build_dataset.py`. Önce `extract_rows_from_*`, `parse_financial_rows`, `derive_quarterly_flows`, `select_source_files`, `build_dataset`, `merge_external_macro_and_risk`, `save_dataset` akışını incele.
-- **Kalite yardımcıları:** `scripts/financial_quality.py`; kaynak satırı takibi, eksiklik sınıfları, takvim pencereleri, atomik yazma.
+- **Eğitim matrisi üretimi:** `scripts/build_training_matrix.py`; kanonik CSV ve dış serilerden her $t_0$ ufku için `available_at <= t0` geçmiş özellikleri, çeyrek içi günlük yörüngeleri ve `X04` etkileşimlerini üretir.
+- **Kalite yardımcıları:** `scripts/financial_quality.py`; kaynak satırı takibi, eksiklik sınıfları, takvim pencereleri, çeyrek içi yörünge hesapları, atomik yazma.
 - **Denetim:** `scripts/audit_dataset.py`; mevcut çıktıyı okur, indirme/eğitim yapmaz.
-- **Regresyon örnekleri:** `tests/test_financial_pipeline.py`; gerçek AEFES/GSDDE/TOASO/CCOLA raporları ve KAREL nakit uzlaşması dahil.
+- **Regresyon örnekleri:** `tests/test_financial_pipeline.py`; gerçek AEFES/GSDDE/TOASO/CCOLA/TUPRS/RYSAS raporları ve KAREL nakit uzlaşması dahil.
 - **Önceki yerel çalışmalar:** `docs/model_oncesi/arsiv/`; ZIP ve SHA-256 manifestosu korunur. Buradaki `.py.txt` bir tarihsel kopyadır, güncel çalıştırılacak betik değildir.
 
 ## 6. Ortam ve kontrol komutları
@@ -86,6 +89,9 @@ python3.12 -m venv .venv
 
 # Mevcut kaynaklardan üretim; ağ isteği yapmaz.
 .venv/bin/python -B scripts/parse_and_build_dataset.py
+
+# Çoklu ufuklu (point-in-time nowcasting) eğitim matrisini üretir.
+.venv/bin/python -B scripts/build_training_matrix.py
 
 # Denetim; dönüş kodunu aşağıdaki anlamıyla değerlendir.
 .venv/bin/python -B scripts/audit_dataset.py

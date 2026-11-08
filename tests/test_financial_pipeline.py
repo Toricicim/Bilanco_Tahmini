@@ -108,6 +108,57 @@ class ParserRegressions(unittest.TestCase):
         selected = parser.select_source_files(files, {"748443": "2019-03-19 00:00:49", "683063": "2018-05-10 21:15:51"})
         self.assertEqual(selected[("AKSEN", 2018, 1)].name, "AKSEN_2018_Q1_683063.xls")
 
+    def test_tax_is_distinct_from_pretax_profit_and_sums_children_when_parent_missing(self):
+        _, rows = read_report("TUPRS_2010_Q1.xls")
+        values = parser.parse_financial_rows(rows, 1000)
+        self.assertEqual(values["vergi_oncesi_kar_zarar_ytd"], 125_427_000)
+        self.assertEqual(values["T06_vergi_gideri_geliri_ytd"], -23_210_000)
+        self.assertEqual(
+            values["vergi_oncesi_kar_zarar_ytd"] + values["T06_vergi_gideri_geliri_ytd"],
+            values["T07_donem_net_kari_ytd"],
+        )
+        synthetic = [
+            ("Gelir Tablosu", None, None),
+            ("SÜRDÜRÜLEN FAALİYETLER VERGİ ÖNCESİ KARI/ZARARI", 500, None),
+            ("Sürdürülen Faaliyetler Vergi Gelir/Gideri", None, None),
+            ("- Dönem Vergi Gelir/Gideri", -80, None),
+            ("- Ertelenmiş Vergi Gelir/Gideri", -20, None),
+            ("DÖNEM KARI/ZARARI", 400, None),
+        ]
+        syn_vals = parser.parse_financial_rows(synthetic, 1)
+        self.assertEqual(syn_vals["vergi_oncesi_kar_zarar_ytd"], 500)
+        self.assertEqual(syn_vals["T06_vergi_gideri_geliri_ytd"], -100)
+
+    def test_operating_cash_flow_top_total_is_not_overwritten_by_pretax_subtotal(self):
+        rows = [
+            ("Nakit Akış Tablosu", None, None),
+            ("A. İŞLETME FAALİYETLERİNDEN NAKİT AKIŞLARI", 250_000, None),
+            ("Faaliyetlerden Elde Edilen Nakit Akışları", 310_000, None),
+        ]
+        values = parser.parse_financial_rows(rows, 1)
+        self.assertEqual(values["T15_isletme_nakit_akisi_ytd"], 250_000)
+
+    def test_oci_section_does_not_overwrite_net_profit(self):
+        _, rows = read_report("TOASO_2014_Q1.xls")
+        values = parser.parse_financial_rows(rows, 1000)
+        self.assertEqual(values["T07_donem_net_kari_ytd"], 134_002_000)
+
+    def test_tuprs_service_revenue_and_rysas_cogs_sign_and_duplicate_cf(self):
+        _, tuprs_rows = read_report("TUPRS_2010_Q1.xls")
+        tuprs_vals = parser.parse_financial_rows(tuprs_rows, 1000)
+        self.assertEqual(
+            tuprs_vals["T01_hasilat_ytd"] + tuprs_vals["T02_satislarin_maliyeti_ytd"],
+            tuprs_vals["T03_brut_kar_ytd"],
+        )
+        _, rysas_2011_rows = read_report("RYSAS_2011_Q1.xls")
+        rysas_audit = {}
+        rysas_2011_vals = parser.parse_financial_rows(rysas_2011_rows, 1, rysas_audit)
+        self.assertEqual(rysas_2011_vals["T02_satislarin_maliyeti_ytd"], -48_119_197)
+        self.assertIn("cogs_sign_normalized_from_gross_profit", rysas_audit["flags"])
+        _, rysas_2010_rows = read_report("RYSAS_2010_Q1.xls")
+        rysas_2010_vals = parser.parse_financial_rows(rysas_2010_rows, 1)
+        self.assertEqual(rysas_2010_vals["T17_finansman_nakit_akisi_ytd"], 12_599_566)
+
 
 class TimeAndOutputRegressions(unittest.TestCase):
     def test_reported_zero_quarter_is_preserved_and_later_evidence_propagates(self):
@@ -193,6 +244,17 @@ class FullBuildRegressions(unittest.TestCase):
         row = self.rows.loc[("TTRAK", 2014, 2)]
         self.assertEqual(row.report_available_at, "2015-01-08 17:49:07")
         self.assertIn("selected_version_later_than_earliest", row.qa_flags)
+
+    def test_sarky_unit_correction_timestamp_and_new_features_populated(self):
+        sarky = self.rows.loc[("SARKY", 2017, 2)]
+        self.assertIn("manual_unit_override", sarky.qa_flags)
+        self.assertEqual(sarky.source_available_at, "2017-08-21 20:29:20")
+        self.assertEqual(int(self.frame["F15_maddi_duran_varliklar"].notna().sum()), 1320)
+        self.assertGreaterEqual(int(self.frame["F16_genel_yonetim_giderleri_ytd"].notna().sum()), 1310)
+        self.assertGreaterEqual(int(self.frame["F18_kisa_vadeli_ertelenmis_gelir_ve_avanslar"].notna().sum()), 890)
+        self.assertEqual(int(self.frame["R01_GPRC_TUR"].notna().sum()), 1320)
+        self.assertEqual(int(self.frame["R01_GPRD_q_mean"].notna().sum()), 1320)
+        self.assertGreaterEqual(int(self.frame["T06_vergi_gideri_geliri_ytd"].notna().sum()), 1310)
 
     def test_all_missing_cells_have_a_reason_and_no_infinities(self):
         missing = self.frame.drop(columns=["qa_flags"]).isna() | self.frame.drop(columns=["qa_flags"]).eq("")

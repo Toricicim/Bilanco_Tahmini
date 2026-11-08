@@ -1,6 +1,6 @@
 # Güncellenebilir değişken listesi
 
-Sürüm: **0.1.0** · Son inceleme: **2026-11-06** · Durum: **taslak, eğitilmiş sonuç yok**.
+Sürüm: **0.2.0** · Son inceleme: **2026-11-08** · Durum: **taslak, eğitilmiş sonuç yok**.
 
 Finans dışı BIST şirketlerinin açıklanmamış hedef çeyreğine ait ana finansal kalemleri tahmin etmek için yaşayan aday girdi sözlüğü. Şirket özelinde kurulmaz; savunma yalnızca aynı olayın farklı sonuç doğurabileceği faaliyetlerden biridir. Hisse fiyatı yönü bu kayıt kapsamındaki hedef değildir.
 
@@ -58,10 +58,10 @@ Model için talep, maliyet, tedarik, finansman ve nakit dönüşümü ayrı kana
 | F12 · P0 · aday | Ticari borç | Bakiye/aktif ve değişim. | T08, T13, T15 | [S01](https://arxiv.org/html/2608.11327v1), [S08](https://www.kap.org.tr/tr/api/about/content-file/402832a195b3017d0195bd17e2e07e9a) |
 | F13 · P0 · aday | Finansal borç ve vade dağılımı | Borç/aktif; kısa vadeli borç/aktif. | T05, T08, T12, T17 | [S01](https://arxiv.org/html/2608.11327v1), [S08](https://www.kap.org.tr/tr/api/about/content-file/402832a195b3017d0195bd17e2e07e9a) |
 | F14 · P0 · aday | Yükümlülük ve özkaynak | Ayrı bakiyeler/aktif. | T11, T13, T14 | [S01](https://arxiv.org/html/2608.11327v1), [S08](https://www.kap.org.tr/tr/api/about/content-file/402832a195b3017d0195bd17e2e07e9a) |
-| F15 · P1 · aday | Yatırım, duran varlık ve amortisman | CAPEX/aktif; PPE/aktif; amortisman ayrı. | T02, T04, T11, T16 | [S01](https://arxiv.org/html/2608.11327v1), [S08](https://www.kap.org.tr/tr/api/about/content-file/402832a195b3017d0195bd17e2e07e9a) |
-| F16 · P1 · aday | Faaliyet giderleri ve Ar-Ge | Satış veya aktif ölçekli, ayrı kalemler. | T04, T07, T11, T16 | [S01](https://arxiv.org/html/2608.11327v1), [S08](https://www.kap.org.tr/tr/api/about/content-file/402832a195b3017d0195bd17e2e07e9a) |
+| F15 · P1 · aday | Yatırım, duran varlık ve amortisman | CAPEX/hasılat; maddi ve maddi olmayan duran varlık/aktif; amortisman ayrı. | T02, T04, T11, T16 | [S01](https://arxiv.org/html/2608.11327v1), [S08](https://www.kap.org.tr/tr/api/about/content-file/402832a195b3017d0195bd17e2e07e9a) |
+| F16 · P1 · aday | Faaliyet giderleri ve Ar-Ge | Pazarlama, genel yönetim ve Ar-Ge giderleri; satış veya aktif ölçekli ayrı kalemler. | T04, T07, T11, T16 | [S01](https://arxiv.org/html/2608.11327v1), [S08](https://www.kap.org.tr/tr/api/about/content-file/402832a195b3017d0195bd17e2e07e9a) |
 | F17 · P1 · aday | Sözleşme varlığı | Bakiye/aktif ve değişim. | T01, T08, T09, T15 | [S08](https://www.kap.org.tr/tr/api/about/content-file/402832a195b3017d0195bd17e2e07e9a), [S11](https://www.ifrs.org/issued-standards/list-of-standards/ifrs-15-revenue-from-contracts-with-customers/) |
-| F18 · P1 · aday | Müşteri avansı ve sözleşme yükümlülüğü | Ayrı bakiyeler/aktif ve değişim. | T01, T08, T13, T15 | [S08](https://www.kap.org.tr/tr/api/about/content-file/402832a195b3017d0195bd17e2e07e9a), [S11](https://www.ifrs.org/issued-standards/list-of-standards/ifrs-15-revenue-from-contracts-with-customers/) |
+| F18 · P1 · aday | Müşteri avansı ve sözleşme yükümlülüğü | Kısa ve uzun vadeli ertelenmiş gelir / alınan avans bakiyeleri ve aktif oranı. | T01, T08, T13, T15 | [S08](https://www.kap.org.tr/tr/api/about/content-file/402832a195b3017d0195bd17e2e07e9a), [S11](https://www.ifrs.org/issued-standards/list-of-standards/ifrs-15-revenue-from-contracts-with-customers/) |
 | F19 · P1 · aday | Net döviz pozisyonu | İşareti korunmuş pozisyon/aktif; mümkünse para birimi ayrımı. | T05, T07, T08, T12 | [S08](https://www.kap.org.tr/tr/api/about/content-file/402832a195b3017d0195bd17e2e07e9a), [S12](https://www.kgk.gov.tr/Portalv2Uploads/files/Duyurular/v2/TMS_TFRS_Setleri/2026/Kirmizi_Kitap/TFRS/TFRS%207.pdf) |
 | F20 · P2 · aday | Borç koşulları ve korunma | Önceki açıklanmış paylar ve koşullar. | T05, T07, T08, T12, T17 | [S12](https://www.kgk.gov.tr/Portalv2Uploads/files/Duyurular/v2/TMS_TFRS_Setleri/2026/Kirmizi_Kitap/TFRS/TFRS%207.pdf), [S17](https://kap.org.tr/tr/icerik/Diger/yardim) |
 
@@ -116,14 +116,14 @@ Tanım ve veri sınırları:
 
 | ID / öncelik / karar | Değişken ailesi | İlk temsil | En ilgili hedefler | Kaynak |
 |---|---|---|---|---|
-| R01 · P0 · seçildi | GPR: jeopolitik risk | Son yayımlanmış aylık küresel seviye; ülke serileri profil uzantısında. | Bütün hedefler | [S03](https://www.matteoiacoviello.com/gpr.htm) |
+| R01 · P0 · seçildi | GPR: jeopolitik risk | Son yayımlanmış aylık küresel seviye (GPR), Türkiye makale payı (GPRC_TUR) ve günlük GPRD (+7g gecikmeli) çeyrek içi dağılım özellikleri. | Bütün hedefler | [S03](https://www.matteoiacoviello.com/gpr.htm) |
 | R02 · P0 · seçildi | GEPU: ekonomik politika belirsizliği | Son yayımlanmış aylık seviye; tek tanımlı sürüm. | Bütün hedefler | [S04](https://policyuncertainty.com/global_monthly.html) |
 | R03 · P0 · seçildi | OFR FSI: finansal stres | Bilinen son 60 işlem günü ortalaması. | Bütün hedefler | [S05](https://www.financialresearch.gov/financial-stress-index/) |
 | R04 · P1 · aday | GPR tehdit / gerçekleşen eylem ayrımı | GPRT / GPRA; toplam GPR’ye alternatif veya kontrollü ek. | Bütün hedefler | [S03](https://www.matteoiacoviello.com/gpr.htm) |
 
 Tanım ve veri sınırları:
 
-- **R01:** Jeopolitik tehdit ve olaylarla ilişkili haber yoğunluğu. **Sınır:** Aylık ay başı, günlük küresel seri haftalık güncellenir; gözlem/yayım ve eski sürüm ayrılır.
+- **R01:** Jeopolitik tehdit ve olaylarla ilişkili haber yoğunluğu (küresel GPR, Türkiye GPRC_TUR ve günlük GPRD). **Sınır:** Aylık ay başı, günlük küresel seri haftalık (+7g gecikme varsayımı) güncellenir; GPRC_TUR 100 bazlı değil % makale payıdır.
 - **R02:** Küresel ekonomik politika belirsizliği; ilk tercih PPP ağırlıklı sürüm. **Sınır:** Tarihsel ilk yayımlanma saati/sabit gecikme varsayılmaz; arşiv veya snapshot gerekir.
 - **R03:** Küresel piyasa stresi ve finansman koşulları. **Sınır:** İki iş günü geriden gelir; negatif değer alabilir; revizyonlar kaydedilir.
 - **R04:** Talep beklentisiyle fiilî üretim/tedarik olayını ayırabilecek alt seriler. **Sınır:** Aynı haber bilgisini çoğaltabilir; ek katkı test edilmeden birlikte tutulmaz.
@@ -173,7 +173,7 @@ Tanım ve veri sınırları:
 | X01 · P1 · aday | Kur × net döviz pozisyonu | Uygun para birimi değişimi × önceki net FX/aktif. | T05, T07, T08, T12 | [S12](https://www.kgk.gov.tr/Portalv2Uploads/files/Duyurular/v2/TMS_TFRS_Setleri/2026/Kirmizi_Kitap/TFRS/TFRS%207.pdf), [S17](https://kap.org.tr/tr/icerik/Diger/yardim) |
 | X02 · P0 · aday | Faiz × finansal borçluluk | Faiz değişimi × önceki finansal borç/aktif. | T05, T07, T12, T17 | [S06](https://evds3.tcmb.gov.tr/), [S12](https://www.kgk.gov.tr/Portalv2Uploads/files/Duyurular/v2/TMS_TFRS_Setleri/2026/Kirmizi_Kitap/TFRS/TFRS%207.pdf) |
 | X03 · P0 · aday | Finansal stres × kısa vadeli borç | OFR FSI × önceki kısa vadeli finansal borç/aktif. | T05, T08, T12, T17 | [S05](https://www.financialresearch.gov/financial-stress-index/), [S12](https://www.kgk.gov.tr/Portalv2Uploads/files/Duyurular/v2/TMS_TFRS_Setleri/2026/Kirmizi_Kitap/TFRS/TFRS%207.pdf) |
-| X04 · P1 · aday | Jeopolitik risk × faaliyet karması | GPR × açıklanmış faaliyet payları; tehdit/eylem ayrımı ayrı deney. | T01, T02, T03, T04, T07 | [S03](https://www.matteoiacoviello.com/gpr.htm), [S09](https://www.ifrs.org/issued-standards/list-of-standards/ifrs-8-operating-segments/), [S13](https://www.federalreserve.gov/econres/notes/feds-notes/measuring-geopolitical-risk-exposure-across-industries-a-firm-centered-approach-20250829.html) |
+| X04 · P1 · aday | Jeopolitik risk × faaliyet karması | GPR / GPRC_TUR / GPRT / GPRA (cari ve gecikmeli) × alt sektör (SAVUNMA, ULAŞTIRMA, BİLİŞİM) ve F18 avans/ertelenmiş gelir oranı. | T01, T02, T03, T04, T07 | [S03](https://www.matteoiacoviello.com/gpr.htm), [S09](https://www.ifrs.org/issued-standards/list-of-standards/ifrs-8-operating-segments/), [S13](https://www.federalreserve.gov/econres/notes/feds-notes/measuring-geopolitical-risk-exposure-across-industries-a-firm-centered-approach-20250829.html) |
 | X05 · P1 · aday | Coğrafi satış ağırlıklı ülke riski | Toplam: bilinen satış payı × normalize ülke GPR. | T01, T04, T07, T09 | [S03](https://www.matteoiacoviello.com/gpr.htm), [S10](https://www.kgk.gov.tr/Portalv2Uploads/files/Duyurular/v2/TMS_TFRS_Setleri/2026/Kirmizi_Kitap/TFRS/TFRS%208.pdf), [S16](https://doi.org/10.1016/j.jaccpubpol.2026.107407) |
 | X06 · P1 · aday | Emtia × üretici/tüketici profili | Emtia değişimi × rol/pay; güvenilir maliyet payı varsa ayrıca. | T01, T02, T03, T04, T10 | [S13](https://www.federalreserve.gov/econres/notes/feds-notes/measuring-geopolitical-risk-exposure-across-industries-a-firm-centered-approach-20250829.html), [S17](https://kap.org.tr/tr/icerik/Diger/yardim) |
 | X07 · P1 · aday | Kur × ihracat / yurtdışı satış | İki farklı payla ayrı etkileşimler. | T01, T03, T07, T09 | [S09](https://www.ifrs.org/issued-standards/list-of-standards/ifrs-8-operating-segments/), [S12](https://www.kgk.gov.tr/Portalv2Uploads/files/Duyurular/v2/TMS_TFRS_Setleri/2026/Kirmizi_Kitap/TFRS/TFRS%207.pdf) |
@@ -184,7 +184,7 @@ Tanım ve veri sınırları:
 - **X01:** Kur şokunun şirketin finansal döviz dengesiyle ilişkisi. **Sınır:** Toplam net pozisyon ile tek kur yalnız vekildir; işaret dayatılmaz.
 - **X02:** Finansman maliyetinin borç profiline göre değişmesi. **Sınır:** Toplam borç ilk vekildir; değişken faizli borç varsa ayrı geliştirilir; bileşenleri de modelde tut.
 - **X03:** Ortak piyasa stresinin refinansman ihtiyacıyla ilişkisi. **Sınır:** Vade/likidite profili eksikse sıfır sayılmaz; risk artışı otomatik sonuç etiketi olmaz.
-- **X04:** Aynı jeopolitik durumun farklı ürün/iş paylarına yansıması. **Sınır:** Savunma gibi bir faaliyet için etki zorla pozitif yapılmaz; kategoriyle etkileşim ayrıca açık vekil olarak denenebilir.
+- **X04:** Aynı jeopolitik durumun farklı ürün/iş paylarına, alt sektörlere ve sipariş avansı yapısına yansıması. **Sınır:** Savunma gibi bir faaliyet için etki zorla pozitif yapılmaz; kategori ve F18 etkileşimi veriden öğrenilir.
 - **X05:** Ülke riskinin şirketin satış pazarlarıyla eşleşmesi. **Sınır:** Eksik ülke payı yeniden 1’e normalize edilerek kapsama gizlenmez; bu tedarik riski değildir.
 - **X06:** Fiyat hareketinin satış ve maliyet kanalını ayırmak. **Sınır:** Aynı emtia artışı iki rolde farklı ilişki kurabilir; işaret ve gecikme öğrenilir.
 - **X07:** Döviz satış kanalını finansal döviz bilançosundan ayırmak. **Sınır:** İhracat payı net kur kazancı değildir; ithal maliyet ve korunma başka kanallar.
@@ -316,4 +316,5 @@ Bu incelemeler model başarısı kanıtı veya beş bağımsız deney değildir;
 
 ## Değişiklik kaydı
 
+- **0.2.0 / 2026-11-08:** T06 vergi/EBT ayrımı, T15 işletme nakit akışı üst-toplam önceliği ve OCI bölüm koruması düzeltildi; mevcut XLS dosyalarından F15, F16 ve F18 kalemleri çıkarıldı; GPRC_TUR, günlük GPRD (+7g gecikme) ve çeyrek içi dağılım özellikleri ile P0-C çok ufuklu nowcasting eğitim matrisi (X04 etkileşimleri dahil) eklendi.
 - **0.1.0 / 2026-11-06:** Kullanıcının istediği beş uzman incelemesiyle ilk genel aday listesi. GPR/GEPU/OFR seçili; tek şirket odağı yok; hiçbir aday için test başarısı iddia edilmiyor.

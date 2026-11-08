@@ -22,13 +22,20 @@ Kaynaklar:
 
 import io
 import json
+import ssl
 import urllib.request
 from datetime import datetime, date
 from pathlib import Path
 import pandas as pd
 from bs4 import BeautifulSoup
 
-from financial_quality import ofr_available_series
+try:
+    import certifi
+    SSL_CTX = ssl.create_default_context(cafile=certifi.where())
+except Exception:
+    SSL_CTX = ssl.create_default_context()
+
+from financial_quality import gprd_available_series, ofr_available_series
 
 ROOT_DIR = Path(__file__).resolve().parent.parent
 EXT_DIR = ROOT_DIR / "data" / "external"
@@ -45,22 +52,39 @@ def download_bytes(url: str, cache_name: str) -> bytes:
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) BilancoTahminiResearch/1.0"
         },
     )
-    with urllib.request.urlopen(req, timeout=30) as resp:
+    with urllib.request.urlopen(req, timeout=30, context=SSL_CTX) as resp:
         data = resp.read()
     cache_path.write_bytes(data)
     return data
 
 
 def fetch_gpr() -> pd.DataFrame:
-    print("[R01/R04] GPR verisi indiriliyor...")
+    print("[R01/R04] Aylik GPR (ve GPRC_TUR) verisi indiriliyor...")
     raw = download_bytes(
         "https://www.matteoiacoviello.com/gpr_files/data_gpr_export.xls",
         "data_gpr_export.xls",
     )
     df = pd.read_excel(io.BytesIO(raw))
-    df = df[["month", "GPR", "GPRT", "GPRA"]].dropna(subset=["month", "GPR"])
+    keep_cols = ["month", "GPR", "GPRT", "GPRA"] + (["GPRC_TUR"] if "GPRC_TUR" in df.columns else [])
+    df = df[keep_cols].dropna(subset=["month", "GPR"])
     df["ym"] = pd.to_datetime(df["month"]).dt.strftime("%Y-%m")
-    return df[["ym", "GPR", "GPRT", "GPRA"]].drop_duplicates("ym").sort_values("ym")
+    out_cols = ["ym", "GPR", "GPRT", "GPRA"] + (["GPRC_TUR"] if "GPRC_TUR" in df.columns else [])
+    return df[out_cols].drop_duplicates("ym").sort_values("ym")
+
+
+def fetch_gpr_daily() -> pd.DataFrame:
+    print("[R01/R04] Gunluk GPRD verisi indiriliyor...")
+    raw = download_bytes(
+        "https://www.matteoiacoviello.com/gpr_files/data_gpr_daily_recent.xls",
+        "data_gpr_daily_recent.xls",
+    )
+    df = pd.read_excel(io.BytesIO(raw))
+    df["date"] = pd.to_datetime(df["date"]).dt.date
+    for col in ("GPRD", "GPRD_ACT", "GPRD_THREAT"):
+        if col in df.columns:
+            df[col] = pd.to_numeric(df[col], errors="coerce")
+    keep = ["date"] + [c for c in ("GPRD", "GPRD_ACT", "GPRD_THREAT") if c in df.columns]
+    return df[keep].dropna(subset=["date", "GPRD"]).drop_duplicates("date").sort_values("date")
 
 
 def fetch_gepu() -> pd.DataFrame:
@@ -161,6 +185,7 @@ def fetch_tcmb_inflation() -> tuple[pd.DataFrame, pd.DataFrame]:
 
 def build_macro_and_risk_tables():
     df_gpr = fetch_gpr()
+    df_gprd = fetch_gpr_daily()
     df_gepu = fetch_gepu()
     df_ofr = fetch_ofr_fsi()
     df_usd = fetch_fx_daily("TRY=X", "USDTRY", "yahoo_usdtry.json")
@@ -194,22 +219,46 @@ def build_macro_and_risk_tables():
     monthly.to_csv(monthly_out, index=False, encoding="utf-8")
     print(f"Aylik makro ve risk tablosu kaydedildi: {monthly_out} ({len(monthly)} ay)")
 
-    # Merge daily series (FX + OFR FSI)
+    # Merge daily series (FX + OFR FSI + Daily GPRD)
     daily = df_usd.merge(df_eur, on="date", how="outer").merge(df_ofr, on="date", how="outer")
     daily = daily.sort_values("date").reset_index(drop=True)
     daily["USDTRY"] = daily["USDTRY"].ffill()
     daily["EURTRY"] = daily["EURTRY"].ffill()
+    # Keep actual business-day FX observations un-ffilled across weekend GPRD rows
+    daily["USDTRY_obs"] = daily["USDTRY"]
+    daily["EURTRY_obs"] = daily["EURTRY"]
 
-    # Work on real FSI observations before merging back to the FX calendar.
+    if not df_gprd.empty:
+        min_d, max_d = daily["date"].min(), daily["date"].max()
+        df_gprd_slice = df_gprd[(df_gprd["date"] >= min_d) & (df_gprd["date"] <= max_d)]
+        daily = daily.merge(df_gprd_slice, on="date", how="outer").sort_values("date").reset_index(drop=True)
+        daily["USDTRY"] = daily["USDTRY"].ffill()
+        daily["EURTRY"] = daily["EURTRY"].ffill()
+
+    # Work on real FSI and GPRD observations before merging back to the daily calendar.
     # The calendar is an explicit approximation; historical vintages are separate.
     daily["date"] = pd.to_datetime(daily["date"])
     available = ofr_available_series(daily)
     daily = pd.merge_asof(daily.sort_values("date"), available,
                           left_on="date", right_on="ofr_assumed_available_at", direction="backward")
     daily["OFR_FSI_avail"] = daily.pop("R03_OFR_FSI")
+    if "GPRD" in daily.columns:
+        gprd_avail = gprd_available_series(daily)
+        daily = pd.merge_asof(
+            daily.sort_values("date"),
+            gprd_avail,
+            left_on="date",
+            right_on="gprd_assumed_available_at",
+            direction="backward",
+        )
+        daily["GPRD_avail"] = daily.pop("R01_GPRD")
+        if "R04_GPRD_ACT" in daily.columns:
+            daily["GPRD_ACT_avail"] = daily.pop("R04_GPRD_ACT")
+        if "R04_GPRD_THREAT" in daily.columns:
+            daily["GPRD_THREAT_avail"] = daily.pop("R04_GPRD_THREAT")
     daily_out = EXT_DIR / "daily_fx_and_fsi.csv"
     daily.to_csv(daily_out, index=False, encoding="utf-8")
-    print(f"Gunluk kur ve OFR FSI tablosu kaydedildi: {daily_out} ({len(daily)} gun)")
+    print(f"Gunluk kur, OFR FSI ve GPRD tablosu kaydedildi: {daily_out} ({len(daily)} gun)")
 
 
 if __name__ == "__main__":

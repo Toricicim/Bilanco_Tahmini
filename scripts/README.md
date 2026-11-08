@@ -26,9 +26,10 @@ Ham dosyalar depoda mevcutsa üretici bunları okur ve ağ isteği yapmaz. Ayrı
 | Betik | Görev |
 |---|---|
 | [fetch_kap_financials_2010_2020.py](fetch_kap_financials_2010_2020.py) | KAP çeyreklik arşivlerini, seçilmiş şirketlerin XLS dosyalarını ve finansal bildirim kataloğunu indirir. Önbellek varsa kullanır. |
-| [fetch_external_macro_and_risk.py](fetch_external_macro_and_risk.py) | GPR/GPRT/GPRA (Iacoviello), GEPU (Policy Uncertainty), FSI (OFR), kurlar (Yahoo), makro (TCMB ve DBnomics üzerinden OECD) verilerini indirip önbellekler. M03 hâlâ gecelik bankalararası faiz vekilidir; ticari kredi faizi değildir. |
-| [parse_and_build_dataset.py](parse_and_build_dataset.py) | Mevcut ham dosyaları okur; birim, satır eşlemesi ve çeyrek dönüşümlerini uygular; tek CSV ve kalite kanıtlarını üretir. |
-| [financial_quality.py](financial_quality.py) | Kaynak satırı takibi, eksiklik nedenleri, takvim hesapları ve atomik dosya yazma yardımcıları. |
+| [fetch_external_macro_and_risk.py](fetch_external_macro_and_risk.py) | GPR/GPRT/GPRA/`GPRC_TUR` ve günlük `GPRD` (Iacoviello), GEPU (Policy Uncertainty), FSI (OFR), kurlar (Yahoo), makro (TCMB ve DBnomics üzerinden OECD) verilerini indirip önbellekler. M03 hâlâ gecelik bankalararası faiz vekilidir; ticari kredi faizi değildir. |
+| [parse_and_build_dataset.py](parse_and_build_dataset.py) | Mevcut ham dosyaları okur; birim, satır eşlemesi, çeyrek dönüşümleri ve çeyrek içi günlük yörüngeleri uygular; tek CSV ve kalite kanıtlarını üretir. |
+| [build_training_matrix.py](build_training_matrix.py) | Kanonik CSV ve dış serilerden $t_0 \in \{+30\text{g}, +60\text{g}, +90\text{g}, +120\text{g}\}$ kesimleri için `available_at <= t0` ve `already_published_at_t0` kurallarına uygun çoklu ufuklu eğitim matrisini (`data/training_matrix_pit_2010_2020.csv`) üretir. |
+| [financial_quality.py](financial_quality.py) | Kaynak satırı takibi, eksiklik nedenleri, takvim hesapları, çeyrek içi günlük yörünge hesapları ve atomik dosya yazma yardımcıları. |
 | [audit_dataset.py](audit_dataset.py) | Şema, kaynak/hash, manifest, sonlu sayı, bilanço, zaman ve kapsam kontrollerini yapar; veri değiştirmez. |
 
 İlk indirme gerektiğinde sırasıyla dış veri ve KAP indirme betikleri çalıştırılır; ardından üretici çağrılır. Veri setini tekrar üretmek için yeniden indirmek gerekmez.

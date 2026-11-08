@@ -75,8 +75,23 @@ def cash_flow_total(label):
         ("finansal faaliyet", "T17_finansman_nakit_akisi_ytd"),
     ):
         if label.startswith(prefix) and "nakit" in label:
-            # Explicit net totals beat pre-tax/interest operating subtotals.
-            priority = 3 if "net nakit" in label else 2 if ("akis" in label or "akim" in label) else 1
+            # Explicit top-level operating totals ("İşletme Faaliyetlerinden...")
+            # must beat pre-tax/interest subtotals ("Faaliyetlerden Elde Edilen..." / "Esas Faaliyetlerden...").
+            if field == "T15_isletme_nakit_akisi_ytd":
+                if prefix == "isletme faaliyet":
+                    priority = (
+                        5
+                        if "net nakit" in label
+                        else 4
+                        if ("akis" in label or "akim" in label or "elde edilen nakit" in label or "saglanan nakit" in label)
+                        else 3
+                    )
+                elif prefix == "esas faaliyet":
+                    priority = 3 if "net nakit" in label else 2 if ("akis" in label or "akim" in label) else 1
+                else:
+                    priority = 3 if "net nakit" in label else 1
+            else:
+                priority = 3 if "net nakit" in label else 2 if ("akis" in label or "akim" in label) else 1
             return field, priority
     return None
 
@@ -112,6 +127,108 @@ def ofr_available_series(daily):
     observations["ofr_assumed_available_at"] = [stamp + offset for stamp in observations["date"]]
     observations["R03_OFR_FSI_60d_mean"] = observations["OFR_FSI"].rolling(60, min_periods=60).mean()
     return observations.rename(columns={"date": "ofr_observation_date", "OFR_FSI": "R03_OFR_FSI"}).sort_values("ofr_assumed_available_at")
+
+
+def gprd_available_series(daily):
+    """Shift actual daily GPRD observations by 7 calendar days (weekly update assumption).
+
+    Daily GPR (Iacoviello) is updated weekly; a 7-calendar-day availability lag
+    is a declared conservative approximation when historical release logs are
+    unavailable.
+    """
+    cols = [c for c in ("GPRD", "GPRD_ACT", "GPRD_THREAT") if c in daily.columns]
+    if not cols:
+        return pd.DataFrame(
+            columns=["gprd_observation_date", "gprd_assumed_available_at", "R01_GPRD", "R04_GPRD_ACT", "R04_GPRD_THREAT"]
+        )
+    observations = daily.loc[daily["GPRD"].notna(), ["date"] + cols].copy()
+    observations["date"] = pd.to_datetime(observations["date"])
+    observations = observations.sort_values("date").drop_duplicates("date")
+    observations["gprd_assumed_available_at"] = observations["date"] + pd.Timedelta(days=7)
+    rename_map = {
+        "date": "gprd_observation_date",
+        "GPRD": "R01_GPRD",
+        "GPRD_ACT": "R04_GPRD_ACT",
+        "GPRD_THREAT": "R04_GPRD_THREAT",
+    }
+    return observations.rename(columns=rename_map).sort_values("gprd_assumed_available_at")
+
+
+def compute_in_quarter_trajectories(
+    daily: pd.DataFrame,
+    quarter_start_dt: pd.Timestamp,
+    period_end_dt: pd.Timestamp,
+    t0_dt: pd.Timestamp,
+) -> dict[str, float | None]:
+    """Compute in-quarter trajectory features (mean, last, std, max, last15d_diff)
+    strictly over actual (non-forward-filled) observation dates within
+    [quarter_start_dt, min(t0_dt, period_end_dt)] whose assumed_available_at <= t0_dt.
+    """
+    window_end = min(pd.Timestamp(t0_dt), pd.Timestamp(period_end_dt))
+    q_start = pd.Timestamp(quarter_start_dt)
+    t0_ts = pd.Timestamp(t0_dt)
+    out: dict[str, float | None] = {}
+
+    def _stats(obs_dates: pd.Series, values: pd.Series, prefix: str) -> None:
+        if values.empty:
+            for suffix in ("_q_mean", "_q_last", "_q_std", "_q_max", "_last15d_diff"):
+                out[f"{prefix}{suffix}"] = None
+            return
+        q_mean = float(values.mean())
+        q_last = float(values.iloc[-1])
+        q_std = float(values.std(ddof=1)) if len(values) >= 2 else 0.0
+        q_max = float(values.max())
+        last_dt = obs_dates.iloc[-1]
+        recent_mask = obs_dates > (last_dt - pd.Timedelta(days=15))
+        recent_mean = float(values[recent_mask].mean()) if recent_mask.any() else q_last
+        out[f"{prefix}_q_mean"] = round(q_mean, 6)
+        out[f"{prefix}_q_last"] = round(q_last, 6)
+        out[f"{prefix}_q_std"] = round(q_std, 6)
+        out[f"{prefix}_q_max"] = round(q_max, 6)
+        out[f"{prefix}_last15d_diff"] = round(recent_mean - q_mean, 6)
+
+    # 1. FX series (USDTRY, EURTRY): available same day on trading days (not weekend ffill)
+    for raw_col, prefix in (("USDTRY_obs", "M01_USDTRY"), ("EURTRY_obs", "M02_EURTRY")):
+        col_to_use = raw_col if raw_col in daily.columns else raw_col.replace("_obs", "")
+        if col_to_use in daily.columns:
+            sub = daily.loc[
+                daily[col_to_use].notna()
+                & (daily["date"] >= q_start)
+                & (daily["date"] <= window_end)
+                & (daily["date"] <= t0_ts),
+                ["date", col_to_use],
+            ].sort_values("date")
+            _stats(sub["date"], sub[col_to_use], prefix)
+        else:
+            _stats(pd.Series(dtype="datetime64[ns]"), pd.Series(dtype=float), prefix)
+
+    # 2. OFR FSI: available after 2 US federal business days
+    if "OFR_FSI" in daily.columns:
+        ofr = ofr_available_series(daily)
+        sub_ofr = ofr.loc[
+            (ofr["ofr_observation_date"] >= q_start)
+            & (ofr["ofr_observation_date"] <= window_end)
+            & (ofr["ofr_assumed_available_at"] <= t0_ts),
+            ["ofr_observation_date", "R03_OFR_FSI"],
+        ].sort_values("ofr_observation_date")
+        _stats(sub_ofr["ofr_observation_date"], sub_ofr["R03_OFR_FSI"], "R03_OFR_FSI")
+    else:
+        _stats(pd.Series(dtype="datetime64[ns]"), pd.Series(dtype=float), "R03_OFR_FSI")
+
+    # 3. Daily GPRD: available after 7 calendar days
+    if "GPRD" in daily.columns:
+        gprd = gprd_available_series(daily)
+        sub_gprd = gprd.loc[
+            (gprd["gprd_observation_date"] >= q_start)
+            & (gprd["gprd_observation_date"] <= window_end)
+            & (gprd["gprd_assumed_available_at"] <= t0_ts),
+            ["gprd_observation_date", "R01_GPRD"],
+        ].sort_values("gprd_observation_date")
+        _stats(sub_gprd["gprd_observation_date"], sub_gprd["R01_GPRD"], "R01_GPRD")
+    else:
+        _stats(pd.Series(dtype="datetime64[ns]"), pd.Series(dtype=float), "R01_GPRD")
+
+    return out
 
 
 def calendar_fx_change(daily, column, days=90):
@@ -182,6 +299,11 @@ DEPENDENCIES = {
     "F14_borc_ozkaynak_orani": ["T13_toplam_yukumlulukler", "T14_toplam_ozkaynaklar"],
     "hisse_basina_kar_ytd": ["T07_ana_ortaklik_net_kari_ytd", "odenmis_sermaye"],
     "hisse_basina_kar_ceyrek": ["T07_ana_ortaklik_net_kari_ceyrek", "odenmis_sermaye"],
+    "F15_maddi_duran_varlik_aktif_orani": ["F15_maddi_duran_varliklar", "T11_toplam_varliklar"],
+    "F15_capex_hasilat_orani": ["F15_capex_ceyrek", "T01_hasilat_ceyrek"],
+    "F16_pazarlama_hasilat_orani": ["F16_pazarlama_giderleri_ceyrek", "T01_hasilat_ceyrek"],
+    "F16_genel_yonetim_hasilat_orani": ["F16_genel_yonetim_giderleri_ceyrek", "T01_hasilat_ceyrek"],
+    "F18_ertelenmis_gelir_kisa_aktif_orani": ["F18_kisa_vadeli_ertelenmis_gelir_ve_avanslar", "T11_toplam_varliklar"],
     "X02_faiz_degisimi_x_finansal_borc_aktif": ["M03_Faiz_3Aylik_Degisim", "F13_finansal_borc_aktif_orani"],
     "X03_ofr_fsi_x_kisa_borc_aktif": ["R03_OFR_FSI_60d_mean", "F13_kisa_finansal_borc_aktif_orani"],
 }
