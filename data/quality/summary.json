@@ -29,29 +29,29 @@
     "T04_esas_faaliyet_kari_ytd": 1,
     "F16_pazarlama_giderleri_ytd": 120,
     "F16_genel_yonetim_giderleri_ytd": 8,
-    "F16_ar_ge_giderleri_ytd": 448,
-    "T05_finansman_gideri_ytd": 11,
-    "F07_finansman_geliri_ytd": 107,
+    "F16_ar_ge_giderleri_ytd": 449,
+    "T05_finansman_gideri_ytd": 10,
+    "F07_finansman_geliri_ytd": 88,
     "vergi_oncesi_kar_zarar_ytd": 0,
     "T06_vergi_gideri_geliri_ytd": 8,
     "T07_donem_net_kari_ytd": 0,
     "T07_ana_ortaklik_net_kari_ytd": 140,
     "T08_nakit_ve_nakit_benzerleri": 0,
-    "F10_kisa_vadeli_ticari_alacaklar": 129,
-    "F10_uzun_vadeli_ticari_alacaklar": 659,
-    "T09_ticari_alacaklar": 750,
+    "F10_kisa_vadeli_ticari_alacaklar": 12,
+    "F10_uzun_vadeli_ticari_alacaklar": 658,
+    "T09_ticari_alacaklar": 658,
     "T10_stoklar": 27,
     "F15_maddi_duran_varliklar": 0,
     "F15_maddi_olmayan_duran_varliklar": 13,
     "donen_varliklar": 8,
     "duran_varliklar": 8,
     "T11_toplam_varliklar": 0,
-    "F13_kisa_vadeli_finansal_borclar": 23,
-    "F13_uzun_vadeli_finansal_borclar": 133,
-    "T12_finansal_borclar": 139,
-    "kisa_vadeli_ticari_borclar": 143,
-    "uzun_vadeli_ticari_borclar": 815,
-    "F12_ticari_borclar": 860,
+    "F13_kisa_vadeli_finansal_borclar": 14,
+    "F13_uzun_vadeli_finansal_borclar": 130,
+    "T12_finansal_borclar": 130,
+    "kisa_vadeli_ticari_borclar": 13,
+    "uzun_vadeli_ticari_borclar": 808,
+    "F12_ticari_borclar": 808,
     "F18_kisa_vadeli_ertelenmis_gelir_ve_avanslar": 423,
     "F18_uzun_vadeli_ertelenmis_gelir_ve_avanslar": 896,
     "kisa_vadeli_yukumlulukler": 8,
@@ -60,12 +60,12 @@
     "T14_toplam_ozkaynaklar": 0,
     "T14_ana_ortakliga_ait_ozkaynaklar": 0,
     "odenmis_sermaye": 1,
-    "kap_raporlanan_hbk_ytd": 642,
-    "T15_isletme_nakit_akisi_ytd": 1,
+    "kap_raporlanan_hbk_ytd": 132,
+    "T15_isletme_nakit_akisi_ytd": 0,
     "T16_yatirim_nakit_akisi_ytd": 5,
     "T17_finansman_nakit_akisi_ytd": 8,
-    "F15_amortisman_ve_itfa_ytd": 160,
-    "F15_capex_ytd": 292,
+    "F15_amortisman_ve_itfa_ytd": 21,
+    "F15_capex_ytd": 77,
     "T01_hasilat_ceyrek": 0,
     "T02_satislarin_maliyeti_ceyrek": 1,
     "T03_brut_kar_ceyrek": 0,
@@ -73,20 +73,20 @@
     "F16_pazarlama_giderleri_ceyrek": 120,
     "F16_genel_yonetim_giderleri_ceyrek": 8,
     "F16_ar_ge_giderleri_ceyrek": 453,
-    "T05_finansman_gideri_ceyrek": 16,
-    "F07_finansman_geliri_ceyrek": 110,
+    "T05_finansman_gideri_ceyrek": 15,
+    "F07_finansman_geliri_ceyrek": 89,
     "vergi_oncesi_kar_zarar_ceyrek": 0,
     "T06_vergi_gideri_geliri_ceyrek": 10,
     "T07_donem_net_kari_ceyrek": 0,
     "T07_ana_ortaklik_net_kari_ceyrek": 142,
-    "T15_isletme_nakit_akisi_ceyrek": 2,
+    "T15_isletme_nakit_akisi_ceyrek": 0,
     "T16_yatirim_nakit_akisi_ceyrek": 10,
     "T17_finansman_nakit_akisi_ceyrek": 11,
-    "F15_amortisman_ve_itfa_ceyrek": 178,
-    "F15_capex_ceyrek": 325,
+    "F15_amortisman_ve_itfa_ceyrek": 22,
+    "F15_capex_ceyrek": 86,
     "available_at": 0,
-    "F07_net_finansman_ytd": 111,
-    "F07_net_finansman_ceyrek": 115,
+    "F07_net_finansman_ytd": 91,
+    "F07_net_finansman_ceyrek": 93,
     "hisse_basina_kar_ytd": 141,
     "hisse_basina_kar_ceyrek": 143,
     "F01_hasilat_qoq_buyume": 30,
@@ -94,19 +94,19 @@
     "F03_brut_kar_marji": 84,
     "F04_esas_faaliyet_marji": 1,
     "F05_net_kar_marji": 0,
-    "F06_cfo_aktif_orani": 2,
-    "F06_tahakkuk_aktif_orani": 2,
+    "F06_cfo_aktif_orani": 0,
+    "F06_tahakkuk_aktif_orani": 0,
     "F09_nakit_aktif_orani": 0,
-    "F10_alacak_satis_orani": 750,
+    "F10_alacak_satis_orani": 658,
     "F11_stok_maliyet_orani": 27,
-    "F12_ticari_borc_maliyet_orani": 860,
-    "F13_finansal_borc_aktif_orani": 139,
-    "F13_kisa_finansal_borc_aktif_orani": 23,
-    "F13_net_borc": 139,
+    "F12_ticari_borc_maliyet_orani": 808,
+    "F13_finansal_borc_aktif_orani": 130,
+    "F13_kisa_finansal_borc_aktif_orani": 14,
+    "F13_net_borc": 130,
     "F14_ozkaynak_aktif_orani": 0,
-    "F14_borc_ozkaynak_orani": 0,
+    "F14_borc_ozkaynak_orani": 9,
     "F15_maddi_duran_varlik_aktif_orani": 0,
-    "F15_capex_hasilat_orani": 325,
+    "F15_capex_hasilat_orani": 86,
     "F16_pazarlama_hasilat_orani": 120,
     "F16_genel_yonetim_hasilat_orani": 8,
     "F18_ertelenmis_gelir_kisa_aktif_orani": 423,
@@ -156,16 +156,17 @@
     "R01_GPRD_q_max": 0,
     "R01_GPRD_last15d_diff": 0,
     "macro_availability_policy": 0,
-    "X02_faiz_degisimi_x_finansal_borc_aktif": 139,
-    "X03_ofr_fsi_x_kisa_borc_aktif": 23
+    "X02_faiz_degisimi_x_finansal_borc_aktif": 130,
+    "X03_ofr_fsi_x_kisa_borc_aktif": 14
   },
   "missing_reason_counts": {
-    "source_value_unavailable": 1544,
-    "missing_component": 5240,
-    "unresolved_source_or_mapping": 3702,
-    "missing_quarter_component": 1387,
+    "source_value_unavailable": 1340,
+    "missing_component": 4613,
+    "unresolved_source_or_mapping": 2755,
+    "missing_quarter_component": 968,
     "insufficient_history": 150,
     "external_observation_unavailable": 30,
+    "non_positive_equity": 9,
     "income_statement_scope_mismatch": 84
   },
   "flagged_reports": [
@@ -262,6 +263,7 @@
       "year": 2013,
       "quarter": 4,
       "flags": [
+        "raw_source_row_shift_ar_ge",
         "selected_version_later_than_earliest"
       ]
     },
@@ -311,6 +313,70 @@
       "quarter": 1,
       "flags": [
         "cogs_sign_normalized_from_gross_profit"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2010,
+      "quarter": 1,
+      "flags": [
+        "non_standard_financial_leasing_bs_schema"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2010,
+      "quarter": 2,
+      "flags": [
+        "non_standard_financial_leasing_bs_schema"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2010,
+      "quarter": 3,
+      "flags": [
+        "non_standard_financial_leasing_bs_schema"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2010,
+      "quarter": 4,
+      "flags": [
+        "non_standard_financial_leasing_bs_schema"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2011,
+      "quarter": 1,
+      "flags": [
+        "non_standard_financial_leasing_bs_schema"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2011,
+      "quarter": 2,
+      "flags": [
+        "non_standard_financial_leasing_bs_schema"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2011,
+      "quarter": 3,
+      "flags": [
+        "non_standard_financial_leasing_bs_schema"
+      ]
+    },
+    {
+      "ticker": "GSDDE",
+      "year": 2011,
+      "quarter": 4,
+      "flags": [
+        "non_standard_financial_leasing_bs_schema"
       ]
     },
     {

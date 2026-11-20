@@ -232,9 +232,27 @@ def extract_rows_from_biff8(file_path: Path) -> tuple[dict[str, str], list[tuple
 RE_UNIT = re.compile(r"Sunum Para Birimi\s*</td>\s*<td[^>]*>\s*([^<]+)", re.I | re.S)
 RE_CONS = re.compile(r"Finansal Tablo Niteli[^\s<]*\s*</td>\s*<td[^>]*>\s*([^<]+)", re.I | re.S)
 RE_LABEL_TR = re.compile(r'content-tr"[^>]*>\s*([^<]+)', re.I | re.S)
+RE_TYPED_CAPTION = re.compile(r'typed-dimension-field-caption"[^>]*>\s*([^<]+)', re.I | re.S)
+RE_BASIC_EPS_ROLE = re.compile(r"general_role_310\d+-row-66\b")
 RE_CTX_CELL = re.compile(r'<td\s+class="taxonomy-context-value[^"]*"[^>]*>(.*?)</td>', re.I | re.S)
 RE_TITLE_VAL = re.compile(r'title="([^"]+)"', re.I | re.S)
 RE_INNER_TEXT = re.compile(r"<[^>]+>")
+
+
+def _parse_html_ctx_cells(row_html: str) -> tuple[float | None, float | None]:
+    """Extract (val_ytd, val_3m) from KAP HTML taxonomy context cells."""
+    ctx_cells = RE_CTX_CELL.findall(row_html)
+    parsed_vals: list[float | None] = []
+    for cell_html in ctx_cells:
+        m_t = RE_TITLE_VAL.search(cell_html)
+        if m_t:
+            parsed_vals.append(parse_number(m_t.group(1)))
+        else:
+            txt_val = html.unescape(RE_INNER_TEXT.sub(" ", cell_html)).strip()
+            parsed_vals.append(parse_number(txt_val))
+    val_ytd = parsed_vals[0] if len(parsed_vals) >= 1 else None
+    val_3m = parsed_vals[2] if len(parsed_vals) >= 3 else None
+    return val_ytd, val_3m
 
 
 def extract_rows_from_html_xls(file_path: Path) -> tuple[dict[str, str], list[tuple[str, float | None, float | None]]]:
@@ -266,14 +284,10 @@ def extract_rows_from_html_xls(file_path: Path) -> tuple[dict[str, str], list[tu
     rows: list[tuple[str, float | None, float | None]] = []
     chunks = html_text.split('<tr class="')
     last_role = ""
+    last_typed_row_is_basic_eps = False
 
-    for ch in chunks[1:]:
-        head_part = ch[:140]
-        if "presentation-disabled" in head_part:
-            continue
-        if "presentation-enabled" not in head_part:
-            continue
-
+    def _emit_role_header(head_part: str) -> None:
+        nonlocal last_role
         # Tablo rol kodunu kontrol et (general_role_210... = BS, 310... = IS, 510.../520... = CF, 610... = EQ)
         m_role = re.search(r"general_role_(\d{3})", head_part)
         if m_role:
@@ -289,6 +303,38 @@ def extract_rows_from_html_xls(file_path: Path) -> tuple[dict[str, str], list[tu
                 elif role_prefix.startswith("61"):
                     rows.append(("Özkaynak Değişim Tablosu", None, None))
 
+    for ch in chunks[1:]:
+        head_part = ch[:140]
+        if "typed-dimension-row" in head_part:
+            last_typed_row_is_basic_eps = (
+                "presentation-enabled" in head_part
+                and bool(RE_BASIC_EPS_ROLE.search(head_part))
+            )
+            if "presentation-enabled" in head_part:
+                _emit_role_header(head_part)
+            continue
+
+        if head_part.startswith("new-type-row"):
+            if not last_typed_row_is_basic_eps:
+                continue
+            m_lbl = RE_TYPED_CAPTION.search(ch) or RE_LABEL_TR.search(ch)
+            if not m_lbl:
+                continue
+            label = html.unescape(m_lbl.group(1)).strip()
+            if not label:
+                continue
+            val_ytd, val_3m = _parse_html_ctx_cells(ch)
+            rows.append((label, val_ytd, val_3m))
+            continue
+
+        last_typed_row_is_basic_eps = False
+        if "presentation-disabled" in head_part:
+            continue
+        if "presentation-enabled" not in head_part:
+            continue
+
+        _emit_role_header(head_part)
+
         m_lbl = RE_LABEL_TR.search(ch)
         if not m_lbl:
             continue
@@ -296,19 +342,7 @@ def extract_rows_from_html_xls(file_path: Path) -> tuple[dict[str, str], list[tu
         if not label:
             continue
 
-        ctx_cells = RE_CTX_CELL.findall(ch)
-        parsed_vals: list[float | None] = []
-        for cell_html in ctx_cells:
-            m_t = RE_TITLE_VAL.search(cell_html)
-            if m_t:
-                parsed_vals.append(parse_number(m_t.group(1)))
-            else:
-                txt_val = html.unescape(RE_INNER_TEXT.sub(" ", cell_html)).strip()
-                parsed_vals.append(parse_number(txt_val))
-
-        val_ytd = parsed_vals[0] if len(parsed_vals) >= 1 else None
-        val_3m = parsed_vals[2] if len(parsed_vals) >= 3 else None
-
+        val_ytd, val_3m = _parse_html_ctx_cells(ch)
         rows.append((label, val_ytd, val_3m))
 
     return meta, rows
@@ -421,6 +455,18 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
     alternative_cost_parts = []
     flags = set()
     financial_gross = None
+    active_blank_parent: str | None = None
+    f10_kisa_children: list[tuple[str, float]] = []
+    f10_uzun_children: list[tuple[str, float]] = []
+    tb_kisa_children: list[tuple[str, float]] = []
+    tb_uzun_children: list[tuple[str, float]] = []
+    f13_kisa_children: list[tuple[str, float]] = []
+    f13_uzun_children: list[tuple[str, float]] = []
+    capex_combined: tuple[str, float] | None = None
+    capex_parts: list[tuple[str, float]] = []
+    amort_combined: tuple[str, float] | None = None
+    amort_parts: list[tuple[str, float]] = []
+    amort_seen: set[tuple[str, float]] = set()
 
     for label, v_ytd, v_3m in rows:
         out.reading(label, v_ytd, v_3m)
@@ -432,11 +478,13 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
         if ln in ("bilanco", "finansal durum tablosu", "finansal durum tablosu (bilanco)", "donen varliklar", "aktif kalemler"):
             statement = "BS"
             bs_section = "DONEN"
+            active_blank_parent = None
             if ln == "donen varliklar" and v_ytd is not None:
                 out["donen_varliklar"] = scale(v_ytd)
             continue
         elif ln == "nazim hesaplar":
             statement = "OFF_BS"
+            active_blank_parent = None
             continue
         elif ln in (
             "diger kapsamli gelir tablosu",
@@ -445,6 +493,7 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
             "diger kapsamli giderler",
         ) or (ln == "kapsamli gelir tablosu" and out["T07_donem_net_kari_ytd"] is not None):
             statement = "OCI"
+            active_blank_parent = None
             continue
         elif ln in (
             "gelir tablosu",
@@ -455,6 +504,7 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
             "surdurulen faaliyetler",
         ):
             statement = "IS"
+            active_blank_parent = None
             continue
         elif (
             ln in ("nakit akim tablosu", "nakit akis tablosu", "nakit akis tablosu dolayli yontem", "nakit akis tablosu dogrudan yontem")
@@ -464,6 +514,7 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
             or "faaliyetlerden kaynaklanan nakit akimlari" in ln
         ):
             statement = "CF"
+            active_blank_parent = None
             heading_total = cash_flow_total(ln)
             if v_ytd is not None and heading_total is not None:
                 field, priority = heading_total
@@ -474,12 +525,14 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
             continue
         elif "ozsermaye degisim tablosu" in ln or "ozkaynak degisim tablosu" in ln or "ozkaynaklar degisim tablosu" in ln or "finansal tablo dipnot" in ln:
             statement = "EQ"
+            active_blank_parent = None
             continue
 
         # ---------------- 1. BİLANÇO (BS) ----------------
         if statement == "BS":
             if ln == "donen varliklar":
                 bs_section = "DONEN"
+                active_blank_parent = None
                 if v_ytd is not None:
                     out["donen_varliklar"] = scale(v_ytd)
                 continue
@@ -487,23 +540,28 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
                 if v_ytd is not None:
                     out["donen_varliklar"] = scale(v_ytd)
                 bs_section = "DURAN"
+                active_blank_parent = None
                 continue
             elif ln == "duran varliklar":
                 bs_section = "DURAN"
+                active_blank_parent = None
                 if v_ytd is not None:
                     out["duran_varliklar"] = scale(v_ytd)
                 continue
             elif ln == "toplam duran varliklar":
                 if v_ytd is not None:
                     out["duran_varliklar"] = scale(v_ytd)
+                active_blank_parent = None
                 continue
             elif ln in ("toplam varliklar", "toplam aktifler", "aktif toplami"):
                 if v_ytd is not None:
                     out["T11_toplam_varliklar"] = scale(v_ytd)
                 bs_section = "KISA_YUK"
+                active_blank_parent = None
                 continue
             elif ln in ("kisa vadeli yukumlulukler", "pasif kalemler"):
                 bs_section = "KISA_YUK"
+                active_blank_parent = None
                 if ln == "kisa vadeli yukumlulukler" and v_ytd is not None:
                     out["kisa_vadeli_yukumlulukler"] = scale(v_ytd)
                 continue
@@ -511,31 +569,38 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
                 if v_ytd is not None:
                     out["kisa_vadeli_yukumlulukler"] = scale(v_ytd)
                 bs_section = "UZUN_YUK"
+                active_blank_parent = None
                 continue
             elif ln == "uzun vadeli yukumlulukler":
                 bs_section = "UZUN_YUK"
+                active_blank_parent = None
                 if v_ytd is not None:
                     out["uzun_vadeli_yukumlulukler"] = scale(v_ytd)
                 continue
             elif ln == "toplam uzun vadeli yukumlulukler":
                 if v_ytd is not None:
                     out["uzun_vadeli_yukumlulukler"] = scale(v_ytd)
+                active_blank_parent = None
                 continue
             elif ln == "toplam yukumlulukler":
                 if v_ytd is not None:
                     out["T13_toplam_yukumlulukler"] = scale(v_ytd)
                 bs_section = "OZKAYNAK"
+                active_blank_parent = None
                 continue
             elif ln in ("o z k a y n a k l a r", "ozkaynaklar", "toplam ozkaynaklar"):
                 bs_section = "OZKAYNAK"
+                active_blank_parent = None
                 if v_ytd is not None:
                     out["T14_toplam_ozkaynaklar"] = scale(v_ytd)
                 continue
             elif ln == "ana ortakliga ait ozkaynaklar":
+                active_blank_parent = None
                 if v_ytd is not None:
                     out["T14_ana_ortakliga_ait_ozkaynaklar"] = scale(v_ytd)
                 continue
             elif ln in ("odenmis sermaye", "sermaye", "cikarilmis sermaye") and (out["odenmis_sermaye"] is None or out["odenmis_sermaye"] == 0):
+                active_blank_parent = None
                 if v_ytd is not None and v_ytd != 0:
                     out["odenmis_sermaye"] = scale(v_ytd)
                 continue
@@ -543,45 +608,158 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
             if bs_section in ("DONEN", "DURAN"):
                 if ln in ("maddi duran varliklar", "maddi duran varliklar (net)") and out["F15_maddi_duran_varliklar"] is None:
                     out["F15_maddi_duran_varliklar"] = scale(v_ytd)
+                    active_blank_parent = None
                 elif ln in ("maddi olmayan duran varliklar", "maddi olmayan duran varliklar (net)") and out["F15_maddi_olmayan_duran_varliklar"] is None:
                     out["F15_maddi_olmayan_duran_varliklar"] = scale(v_ytd)
+                    active_blank_parent = None
 
             if bs_section == "DONEN":
                 if ln in ("nakit ve benzerleri", "nakit ve nakit benzerleri") and out["T08_nakit_ve_nakit_benzerleri"] is None:
                     out["T08_nakit_ve_nakit_benzerleri"] = scale(v_ytd)
+                    active_blank_parent = None
                 elif ln in ("nakit degerler", "bankalar") and v_ytd is not None:
                     alt_cash_parts.append(scale(v_ytd))
+                    active_blank_parent = None
                 elif ln == "ticari alacaklar" and out["F10_kisa_vadeli_ticari_alacaklar"] is None:
-                    out["F10_kisa_vadeli_ticari_alacaklar"] = scale(v_ytd)
+                    if v_ytd is not None:
+                        out["F10_kisa_vadeli_ticari_alacaklar"] = scale(v_ytd)
+                        active_blank_parent = None
+                    else:
+                        out["F10_kisa_vadeli_ticari_alacaklar"] = None
+                        active_blank_parent = "F10_kisa"
+                elif (
+                    out["F10_kisa_vadeli_ticari_alacaklar"] is None
+                    and "ticari alacak" in ln
+                    and not any(x in ln for x in ("karsilik", "deger dusuklugu", "supheli"))
+                    and (
+                        active_blank_parent == "F10_kisa"
+                        or "iliskili" in ln
+                        or "diger ticari alacak" in ln
+                        or re.sub(r"^-\s*", "", ln) == "ticari alacaklar"
+                    )
+                ):
+                    if v_ytd is not None:
+                        f10_kisa_children.append((label, scale(v_ytd)))
                 elif ln == "stoklar" and out["T10_stoklar"] is None:
                     out["T10_stoklar"] = scale(v_ytd)
+                    active_blank_parent = None
+                else:
+                    active_blank_parent = None
             elif bs_section == "DURAN":
-                if ln == "ticari alacaklar" and out["F10_uzun_vadeli_ticari_alacaklar"] is None:
-                    out["F10_uzun_vadeli_ticari_alacaklar"] = scale(v_ytd)
+                if ln in ("ticari alacaklar", "uzun vadeli ticari alacaklar") and out["F10_uzun_vadeli_ticari_alacaklar"] is None:
+                    if v_ytd is not None:
+                        out["F10_uzun_vadeli_ticari_alacaklar"] = scale(v_ytd)
+                        active_blank_parent = None
+                    else:
+                        out["F10_uzun_vadeli_ticari_alacaklar"] = None
+                        active_blank_parent = "F10_uzun"
+                elif (
+                    out["F10_uzun_vadeli_ticari_alacaklar"] is None
+                    and "ticari alacak" in ln
+                    and not any(x in ln for x in ("karsilik", "deger dusuklugu", "supheli"))
+                    and (
+                        active_blank_parent == "F10_uzun"
+                        or "iliskili" in ln
+                        or "diger ticari alacak" in ln
+                        or re.sub(r"^-\s*", "", ln) == "ticari alacaklar"
+                    )
+                ):
+                    if v_ytd is not None:
+                        f10_uzun_children.append((label, scale(v_ytd)))
+                else:
+                    active_blank_parent = None
             elif bs_section == "KISA_YUK":
+                if active_blank_parent == "F13_kisa":
+                    if label.lstrip().startswith("-") and any(
+                        k in ln
+                        for k in ("finansal borc", "banka kredi", "finansal kiralama", "borclanma", "tahvil", "bono", "ihrac edilmis")
+                    ):
+                        if v_ytd is not None:
+                            f13_kisa_children.append((label, scale(v_ytd)))
+                        continue
+                    active_blank_parent = None
                 if ln in ("finansal borclar", "kisa vadeli borclanmalar", "uzun vadeli borclanmalarin kisa vadeli kisimlari", "alinan krediler"):
                     if v_ytd is not None:
                         kisa_borc_parts.append(scale(v_ytd))
+                    elif ln in ("finansal borclar", "kisa vadeli borclanmalar") and not kisa_borc_parts:
+                        active_blank_parent = "F13_kisa"
+                        if out["F13_kisa_vadeli_finansal_borclar"] is None:
+                            out["F13_kisa_vadeli_finansal_borclar"] = None
                 elif ln == "ticari borclar" and out["kisa_vadeli_ticari_borclar"] is None:
-                    out["kisa_vadeli_ticari_borclar"] = scale(v_ytd)
+                    if v_ytd is not None:
+                        out["kisa_vadeli_ticari_borclar"] = scale(v_ytd)
+                        active_blank_parent = None
+                    else:
+                        out["kisa_vadeli_ticari_borclar"] = None
+                        active_blank_parent = "tb_kisa"
+                elif (
+                    out["kisa_vadeli_ticari_borclar"] is None
+                    and "ticari borc" in ln
+                    and not any(x in ln for x in ("karsilik", "deger dusuklugu"))
+                    and (
+                        active_blank_parent == "tb_kisa"
+                        or "iliskili" in ln
+                        or "diger ticari borc" in ln
+                        or re.sub(r"^-\s*", "", ln) == "ticari borclar"
+                    )
+                ):
+                    if v_ytd is not None:
+                        tb_kisa_children.append((label, scale(v_ytd)))
                 elif ln in f18_labels:
+                    active_blank_parent = None
                     if v_ytd is not None and ln not in kisa_f18_parts:
                         kisa_f18_parts[ln] = scale(v_ytd)
                         out["F18_kisa_vadeli_ertelenmis_gelir_ve_avanslar"] = round(sum(kisa_f18_parts.values()), 2)
                     elif v_ytd is None and not kisa_f18_parts:
                         out["F18_kisa_vadeli_ertelenmis_gelir_ve_avanslar"] = None
+                else:
+                    active_blank_parent = None
             elif bs_section == "UZUN_YUK":
+                if active_blank_parent == "F13_uzun":
+                    if label.lstrip().startswith("-") and any(
+                        k in ln
+                        for k in ("finansal borc", "banka kredi", "finansal kiralama", "borclanma", "tahvil", "bono", "ihrac edilmis")
+                    ):
+                        if v_ytd is not None:
+                            f13_uzun_children.append((label, scale(v_ytd)))
+                        continue
+                    active_blank_parent = None
                 if ln in ("finansal borclar", "uzun vadeli borclanmalar"):
                     if v_ytd is not None:
                         uzun_borc_parts.append(scale(v_ytd))
-                elif ln == "ticari borclar" and out["uzun_vadeli_ticari_borclar"] is None:
-                    out["uzun_vadeli_ticari_borclar"] = scale(v_ytd)
+                    elif not uzun_borc_parts:
+                        active_blank_parent = "F13_uzun"
+                        if out["F13_uzun_vadeli_finansal_borclar"] is None:
+                            out["F13_uzun_vadeli_finansal_borclar"] = None
+                elif ln in ("ticari borclar", "uzun vadeli ticari borclar", "uzun vadeli diger ticari borclar") and out["uzun_vadeli_ticari_borclar"] is None:
+                    if v_ytd is not None:
+                        out["uzun_vadeli_ticari_borclar"] = scale(v_ytd)
+                        active_blank_parent = None
+                    else:
+                        out["uzun_vadeli_ticari_borclar"] = None
+                        active_blank_parent = "tb_uzun"
+                elif (
+                    out["uzun_vadeli_ticari_borclar"] is None
+                    and "ticari borc" in ln
+                    and not any(x in ln for x in ("karsilik", "deger dusuklugu"))
+                    and (
+                        active_blank_parent == "tb_uzun"
+                        or "iliskili" in ln
+                        or "diger ticari borc" in ln
+                        or re.sub(r"^-\s*", "", ln) == "ticari borclar"
+                    )
+                ):
+                    if v_ytd is not None:
+                        tb_uzun_children.append((label, scale(v_ytd)))
                 elif ln in f18_labels:
+                    active_blank_parent = None
                     if v_ytd is not None and ln not in uzun_f18_parts:
                         uzun_f18_parts[ln] = scale(v_ytd)
                         out["F18_uzun_vadeli_ertelenmis_gelir_ve_avanslar"] = round(sum(uzun_f18_parts.values()), 2)
                     elif v_ytd is None and not uzun_f18_parts:
                         out["F18_uzun_vadeli_ertelenmis_gelir_ve_avanslar"] = None
+                else:
+                    active_blank_parent = None
 
         # ---------------- 2. GELİR TABLOSU (IS) ----------------
         elif statement == "IS":
@@ -660,11 +838,27 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
                 if v_ytd is not None:
                     out["T04_esas_faaliyet_kari_ytd"] = scale(v_ytd)
                     out["T04_esas_faaliyet_kari_3m_raw"] = scale(v_3m)
-            elif ln in ("finansal gelirler", "finansman gelirleri", "esas faaliyet disi finansal gelirler") and out["F07_finansman_geliri_ytd"] is None:
+            elif ln in (
+                "finansal gelirler",
+                "finansman gelirleri",
+                "finansman gelirleri (+)",
+                "finansman gelirleri (-)",
+                "-finansman gelirleri",
+                "- finansman gelirleri",
+                "finansman geliri",
+                "esas faaliyet disi finansal gelirler",
+            ) and out["F07_finansman_geliri_ytd"] is None:
                 if v_ytd is not None:
                     out["F07_finansman_geliri_ytd"] = scale(v_ytd)
                     out["F07_finansman_geliri_3m_raw"] = scale(v_3m)
-            elif ln in ("finansal giderler (-)", "finansman giderleri (-)", "finansman giderleri", "esas faaliyet disi finansal giderler (-)") and out["T05_finansman_gideri_ytd"] is None:
+            elif ln in (
+                "finansal giderler (-)",
+                "finansal giderler(-)",
+                "finansman giderleri (-)",
+                "finansman giderleri(-)",
+                "finansman giderleri",
+                "esas faaliyet disi finansal giderler (-)",
+            ) and out["T05_finansman_gideri_ytd"] is None:
                 if v_ytd is not None:
                     out["T05_finansman_gideri_ytd"] = scale(v_ytd)
                     out["T05_finansman_gideri_3m_raw"] = scale(v_3m)
@@ -733,13 +927,11 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
                 if v_ytd is not None:
                     out["T07_ana_ortaklik_net_kari_ytd"] = scale(v_ytd)
                     out["T07_ana_ortaklik_net_kari_3m_raw"] = scale(v_3m)
-            elif ln in (
-                "hisse basina kazanc",
-                "pay basina kazanc",
-                "adi hisse basina kazanc",
-                "surdurulen faaliyetlerden pay basina kazanc",
-                "- surdurulen faaliyetlerden pay basina kazanc",
-                "surdurulen faaliyetlerden hisse basina kazanc",
+            elif (
+                ("pay basina" in ln or "hisse basina" in ln)
+                and any(k in ln for k in ("kazanc", "kar", "zarar", "kayip"))
+                and not any(x in ln for x in ("sulandirilmis", "durdurulan", "pay bazli"))
+                and ("seyreltilmis" not in ln or "adi ve seyreltilmis" in ln)
             ) and out["kap_raporlanan_hbk_ytd"] is None:
                 if v_ytd is not None:
                     out["kap_raporlanan_hbk_ytd"] = float(v_ytd)
@@ -755,28 +947,118 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
                     cf_priorities[field] = priority
                     cf_matched_labels[field] = ln
                 continue
-            if ln in (
-                "amortisman ve itfa gideri ile ilgili duzeltmeler",
-                "- amortisman ve itfa giderleri ile ilgili duzeltmeler",
-                "amortisman ve itfa paylari",
-                "- maddi duran varliklarin amortismani",
-                "amortisman ve itfa giderleri",
-                "maddi duran varliklarin amortismani",
-                "amortisman gideri",
-                "amortismanlar (+)",
-                "amortisman (+)",
-            ) and out["F15_amortisman_ve_itfa_ytd"] is None:
-                out["F15_amortisman_ve_itfa_ytd"] = scale(v_ytd)
-            elif ln in (
-                "maddi ve maddi olmayan duran varliklarin alimindan kaynaklanan nakit cikislari",
-                "- maddi ve maddi olmayan duran varliklarin alimindan kaynaklanan nakit cikislari",
-                "maddi ve maddi olmayan duran varlik alimlari",
-                "- maddi ve maddi olmayan duran varlik alimlari",
-                "maddi duran varlik alimlari",
-                "- maddi duran varlik alimlari",
-            ) and out["F15_capex_ytd"] is None:
-                out["F15_capex_ytd"] = scale(v_ytd)
+            if (
+                any(k in ln for k in ("amortisman", "amortisan", "itfa", "tukenme"))
+                and not any(
+                    x in ln
+                    for x in (
+                        "imtiyaz kira",
+                        "kira gideri",
+                        "pesin oden",
+                        "kredi",
+                        "tahvil",
+                        "bono",
+                        "borclanma",
+                        "finansman",
+                        "iskonto",
+                        "prim",
+                        "durdurulan",
+                        "ertelenmis",
+                        "satis",
+                        "elden cikar",
+                        "deger dusuklugu",
+                        "stok",
+                        "alacak",
+                        "karsilik",
+                        "vergi",
+                        "kur farki",
+                    )
+                )
+            ):
+                if v_ytd is None:
+                    if amort_combined is None and not amort_parts and out["F15_amortisman_ve_itfa_ytd"] is None:
+                        out["F15_amortisman_ve_itfa_ytd"] = None
+                else:
+                    scaled_val = scale(v_ytd)
+                    is_combined = ("amortisman" in ln or "amortisan" in ln) and ("itfa" in ln or "tukenme" in ln)
+                    if is_combined:
+                        if amort_combined is None:
+                            amort_combined = (label, scaled_val)
+                    elif (ln, scaled_val) not in amort_seen:
+                        amort_seen.add((ln, scaled_val))
+                        amort_parts.append((label, scaled_val))
+            elif (
+                ("maddi" in ln or "sabit kiymet" in ln)
+                and any(k in ln for k in ("alim", "satin al", "edinim", "yatirim harcama"))
+                and not any(
+                    x in ln
+                    for x in (
+                        "satis",
+                        "satim",
+                        "elden cikar",
+                        "amortisman",
+                        "itfa",
+                        "deger dusuklugu",
+                        "avans",
+                        "net",
+                        "tahsil",
+                        "satilan",
+                    )
+                )
+            ):
+                if v_ytd is None:
+                    if capex_combined is None and not capex_parts and out["F15_capex_ytd"] is None:
+                        out["F15_capex_ytd"] = None
+                else:
+                    scaled_val = scale(v_ytd)
+                    ln_no_int = re.sub(r"m(?:addi|adii|\.)\s*olmayan", "", ln)
+                    is_combined = (
+                        "maddi" in ln_no_int
+                        and any(x in ln for x in ("maddi olmayan", "m.olmayan", "m. olmayan", "madii olmayan"))
+                    ) or "sabit kiymet" in ln
+                    if is_combined:
+                        if capex_combined is None or (capex_combined[1] == 0 and scaled_val != 0):
+                            capex_combined = (label, scaled_val)
+                    else:
+                        capex_parts.append((label, scaled_val))
     out.deriving()
+
+    def _assign_from_parts(field: str, parts: list[tuple[str, float]]) -> None:
+        if not parts:
+            return
+        total = round(sum(v for _, v in parts), 2)
+        out[field] = total
+        if len(parts) == 1:
+            out.fields[field] = {
+                "status": "reported",
+                "source_label": parts[0][0],
+                "value": total,
+            }
+        else:
+            out.fields[field] = {
+                "status": "derived_from_subrows",
+                "subrow_labels": [lbl for lbl, _ in parts],
+                "value": total,
+            }
+
+    if out["F10_kisa_vadeli_ticari_alacaklar"] is None:
+        _assign_from_parts("F10_kisa_vadeli_ticari_alacaklar", f10_kisa_children)
+    if out["F10_uzun_vadeli_ticari_alacaklar"] is None:
+        _assign_from_parts("F10_uzun_vadeli_ticari_alacaklar", f10_uzun_children)
+    if out["kisa_vadeli_ticari_borclar"] is None:
+        _assign_from_parts("kisa_vadeli_ticari_borclar", tb_kisa_children)
+    if out["uzun_vadeli_ticari_borclar"] is None:
+        _assign_from_parts("uzun_vadeli_ticari_borclar", tb_uzun_children)
+
+    if capex_combined is not None and (capex_combined[1] != 0 or not capex_parts):
+        _assign_from_parts("F15_capex_ytd", [capex_combined])
+    elif capex_parts:
+        _assign_from_parts("F15_capex_ytd", capex_parts)
+
+    if amort_combined is not None and (amort_combined[1] != 0 or not amort_parts):
+        _assign_from_parts("F15_amortisman_ve_itfa_ytd", [amort_combined])
+    elif amort_parts:
+        _assign_from_parts("F15_amortisman_ve_itfa_ytd", amort_parts)
 
     # Vergi üst satırı boşsa (veya 0 olup alt kalemlerle çelişiyorsa) dönem + ertelenmiş vergi alt kalemlerinden türet
     tax_parts_ytd = [x for x in (donem_vergi_ytd, ertelenmis_vergi_ytd) if x is not None]
@@ -838,8 +1120,12 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
         )
     if kisa_borc_parts:
         out["F13_kisa_vadeli_finansal_borclar"] = round(sum(kisa_borc_parts), 2)
+    elif f13_kisa_children:
+        _assign_from_parts("F13_kisa_vadeli_finansal_borclar", f13_kisa_children)
     if uzun_borc_parts:
         out["F13_uzun_vadeli_finansal_borclar"] = round(sum(uzun_borc_parts), 2)
+    elif f13_uzun_children:
+        _assign_from_parts("F13_uzun_vadeli_finansal_borclar", f13_uzun_children)
     if out["F13_kisa_vadeli_finansal_borclar"] is not None or out["F13_uzun_vadeli_finansal_borclar"] is not None:
         out["T12_finansal_borclar"] = optional_round(
             finite_sum([out["F13_kisa_vadeli_finansal_borclar"], out["F13_uzun_vadeli_finansal_borclar"]]), 2
@@ -872,12 +1158,33 @@ def parse_financial_rows(rows: list[tuple[str, float | None, float | None]], mul
     return dict(out)
 
 
+def _catalog_summary_rank(summary: str) -> int:
+    """Rank KAP financial disclosure summaries so primary statements beat Dipnot PDF covers."""
+    norm = normalize_tr(summary)
+    if not norm or norm == "finansal rapor":
+        return 0
+    if "bilanco" in norm or "finansal durum" in norm:
+        return 1
+    if "gelir tablosu" in norm or "kar veya zarar" in norm:
+        return 2
+    if "nakit akim" in norm or "nakit akis" in norm:
+        return 3
+    if "ozsermaye" in norm or "ozkaynak" in norm:
+        return 4
+    if "nazim" in norm:
+        return 5
+    if "dipnot" in norm:
+        return 6
+    return 7
+
+
 def load_catalog_dates() -> tuple[dict[tuple[str, int, int], tuple[str, str]], dict[str, str]]:
     """
     data/kap_fr_catalog_2010_2020.json dosyasından:
     1) (ticker, year, quarter) -> (first_published_at, disclosure_index)
     2) disclosure_index -> first_published_at
-    sözlüklerini oluşturur.
+    sözlüklerini oluşturur. 2010-2016Q1 arası aynı gün/saniyede parçalı yayımlanan
+    bildirimlerde Dipnot PDF kapağı yerine birincil tabloyu (Bilanço/Finansal Rapor) seçer.
     """
     cat_path = ROOT_DIR / "data" / "kap_fr_catalog_2010_2020.json"
     if not cat_path.is_file():
@@ -900,6 +1207,8 @@ def load_catalog_dates() -> tuple[dict[tuple[str, int, int], tuple[str, str]], d
     }
     alias_map = {"KRDMA": "KRDMD", "KRDMB": "KRDMD", "KRDMD": "KRDMD"}
     result: dict[tuple[str, int, int], tuple[str, str]] = {}
+    earliest_pub: dict[tuple[str, int, int], str] = {}
+    best_stmt: dict[tuple[str, int, int], tuple[str, int, str, str]] = {}
     by_disc_idx: dict[str, str] = {}
 
     for d in disclosures:
@@ -934,8 +1243,20 @@ def load_catalog_dates() -> tuple[dict[tuple[str, int, int], tuple[str, str]], d
         if not yr or not q or int(q) not in (1, 2, 3, 4):
             continue
         key = (matched_t, int(yr), int(q))
-        if key not in result or (pub_iso and pub_iso < result[key][0]):
-            result[key] = (pub_iso, disc_idx)
+        if pub_iso and (key not in earliest_pub or pub_iso < earliest_pub[key]):
+            earliest_pub[key] = pub_iso
+        stmt_rank = _catalog_summary_rank(basic.get("summary") or "")
+        cand_stmt = (
+            pub_iso[:10] if pub_iso else "9999-99-99",
+            stmt_rank,
+            pub_iso or "9999-99-99 99:99:99",
+            disc_idx,
+        )
+        if key not in best_stmt or cand_stmt < best_stmt[key]:
+            best_stmt[key] = cand_stmt
+
+    for key, stmt in best_stmt.items():
+        result[key] = (earliest_pub.get(key, ""), stmt[3])
     return result, by_disc_idx
 
 
@@ -1090,6 +1411,19 @@ def build_dataset(*, return_quality=False):
 
                     report_audit = {}
                     fin = parse_financial_rows(rows, mult, report_audit)
+                    if (ticker, yr, q) == ("THYAO", 2013, 4) and fin["F16_ar_ge_giderleri_ytd"] == 230_555_047.0:
+                        fin["F16_ar_ge_giderleri_ytd"] = None
+                        fin["F16_ar_ge_giderleri_3m_raw"] = None
+                        report_audit["flags"].append("raw_source_row_shift_ar_ge")
+                        report_audit["fields"]["F16_ar_ge_giderleri_ytd"] = {
+                            "status": "source_value_unavailable",
+                            "source_label": "Araştırma ve Geliştirme Giderleri (-)",
+                            "raw_value": 230_555_047.0,
+                            "value": None,
+                            "note": "Raw KAP row-shift error: +230,555,047 is Esas Faaliyetlerden Diger Gelirler shifted up by 1 row.",
+                        }
+                    if ticker == "GSDDE" and yr in (2010, 2011):
+                        report_audit["flags"].append("non_standard_financial_leasing_bs_schema")
                     if manual_unit_override:
                         report_audit["flags"].append("manual_unit_override")
                     if unit_correction_evidence_at:
@@ -1165,7 +1499,6 @@ def build_dataset(*, return_quality=False):
     rev_q = df["T01_hasilat_ceyrek"].replace(0, np.nan)
     cogs_q_abs = df["T02_satislarin_maliyeti_ceyrek"].abs().replace(0, np.nan)
     assets = df["T11_toplam_varliklar"].replace(0, np.nan)
-    equity = df["T14_toplam_ozkaynaklar"].replace(0, np.nan)
 
     df["F01_hasilat_qoq_buyume"] = df.groupby("ticker", group_keys=False)["T01_hasilat_ceyrek"].pct_change(1, fill_method=None)
     df["F01_hasilat_yoy_buyume"] = df.groupby("ticker", group_keys=False)["T01_hasilat_ceyrek"].pct_change(4, fill_method=None)
@@ -1185,7 +1518,8 @@ def build_dataset(*, return_quality=False):
     df["F13_kisa_finansal_borc_aktif_orani"] = df["F13_kisa_vadeli_finansal_borclar"] / assets
     df["F13_net_borc"] = df["T12_finansal_borclar"] - df["T08_nakit_ve_nakit_benzerleri"]
     df["F14_ozkaynak_aktif_orani"] = df["T14_toplam_ozkaynaklar"] / assets
-    df["F14_borc_ozkaynak_orani"] = df["T13_toplam_yukumlulukler"] / equity
+    positive_equity = df["T14_toplam_ozkaynaklar"].where(df["T14_toplam_ozkaynaklar"] > 0, np.nan)
+    df["F14_borc_ozkaynak_orani"] = df["T13_toplam_yukumlulukler"] / positive_equity
     df["F15_maddi_duran_varlik_aktif_orani"] = df["F15_maddi_duran_varliklar"] / assets
     df["F15_capex_hasilat_orani"] = df["F15_capex_ceyrek"].abs() / rev_q
     df["F16_pazarlama_hasilat_orani"] = df["F16_pazarlama_giderleri_ceyrek"].abs() / rev_q

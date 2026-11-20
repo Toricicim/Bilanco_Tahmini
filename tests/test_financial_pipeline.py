@@ -20,6 +20,7 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 import financial_quality as quality
 import parse_and_build_dataset as parser
+import build_training_matrix as tm_builder
 import audit_dataset
 
 
@@ -159,6 +160,57 @@ class ParserRegressions(unittest.TestCase):
         rysas_2010_vals = parser.parse_financial_rows(rysas_2010_rows, 1)
         self.assertEqual(rysas_2010_vals["T17_finansman_nakit_akisi_ytd"], 12_599_566)
 
+    def test_load_catalog_dates_prefers_statement_over_dipnot(self):
+        cat_dates, _ = parser.load_catalog_dates()
+        pub, idx = cat_dates[("AEFES", 2010, 1)]
+        self.assertEqual(pub, "2010-05-11 17:54:03")
+        self.assertEqual(idx, "115705")
+
+    def test_blank_parent_subrows_recovered_and_filled_parent_never_double_counted(self):
+        synthetic = [
+            ("Bilanço", None, None),
+            ("Dönen Varlıklar", None, None),
+            ("Ticari Alacaklar", 500, None),
+            ("- İlişkili taraflardan ticari alacaklar", 100, None),
+            ("- Diğer ticari alacaklar", 400, None),
+            ("Kısa Vadeli Yükümlülükler", None, None),
+            ("Finansal Borçlar", 100, None),
+            ("- Banka kredileri", 60, None),
+            ("- Finansal kiralama işlemlerinden borçlar", 40, None),
+        ]
+        syn_vals = parser.parse_financial_rows(synthetic, 1)
+        self.assertEqual(syn_vals["F10_kisa_vadeli_ticari_alacaklar"], 500)
+        self.assertEqual(syn_vals["F13_kisa_vadeli_finansal_borclar"], 100)
+
+        meta, rows = read_report("ZOREN_2010_Q3.xls")
+        _, mult = parser.detect_unit_multiplier(meta["original_unit"])
+        vals = parser.parse_financial_rows(rows, mult)
+        self.assertEqual(vals["F13_kisa_vadeli_finansal_borclar"], (538_940 + 1_527) * 1000)
+        self.assertEqual(vals["F13_uzun_vadeli_finansal_borclar"], (836_819 + 6_277) * 1000)
+        self.assertEqual(vals["kisa_vadeli_ticari_borclar"], (10_826 + 61_686) * 1000)
+        self.assertEqual(vals["uzun_vadeli_ticari_borclar"], (138_982 + 75_199) * 1000)
+
+    def test_capex_amort_and_gsdde_cash_flow_recovery(self):
+        aygaz_meta, aygaz_rows = read_report("AYGAZ_2010_Q1.xls")
+        _, aygaz_mult = parser.detect_unit_multiplier(aygaz_meta["original_unit"])
+        aygaz_vals = parser.parse_financial_rows(aygaz_rows, aygaz_mult)
+        self.assertEqual(aygaz_vals["F15_capex_ytd"], (-5_879 - 469) * 1000)
+        self.assertEqual(aygaz_vals["F15_amortisman_ve_itfa_ytd"], (23_760 + 511) * 1000)
+
+        _, tavhl_rows = read_report("TAVHL_2010_Q1.xls")
+        tavhl_vals = parser.parse_financial_rows(tavhl_rows, 1)
+        self.assertEqual(tavhl_vals["F15_amortisman_ve_itfa_ytd"], 15_358_271 + 7_600_314 + 2_799_223)
+
+        gsdde_meta, gsdde_rows = read_report("GSDDE_2012_Q1.xls")
+        _, gsdde_mult = parser.detect_unit_multiplier(gsdde_meta["original_unit"])
+        gsdde_vals = parser.parse_financial_rows(gsdde_rows, gsdde_mult)
+        self.assertEqual(gsdde_vals["T15_isletme_nakit_akisi_ytd"], 4_872_000)
+
+    def test_html_new_type_row_basic_eps_and_exclusions(self):
+        _, rows = read_report("AEFES_2016_Q2_553303.xls")
+        vals = parser.parse_financial_rows(rows, 1000)
+        self.assertAlmostEqual(vals["kap_raporlanan_hbk_ytd"], 0.3921, places=6)
+
 
 class TimeAndOutputRegressions(unittest.TestCase):
     def test_reported_zero_quarter_is_preserved_and_later_evidence_propagates(self):
@@ -280,6 +332,71 @@ class FullBuildRegressions(unittest.TestCase):
             changed.loc[0, "T01_hasilat_ceyrek"] += 1
             changed.to_csv(Path(temp) / parser.OUTPUT_CSV.name, index=False)
             self.assertIn("CSV hash does not match completed build manifest", audit_dataset.audit(Path(temp))["errors"])
+
+    def test_no_dipnot_cover_links_in_canonical_build(self):
+        cat = json.loads((ROOT / "data/kap_fr_catalog_2010_2020.json").read_text(encoding="utf-8"))
+        by_idx_summary = {
+            str((d.get("disclosureBasic", d)).get("disclosureIndex") or ""): ((d.get("disclosureBasic", d)).get("summary") or "")
+            for d in cat["disclosures"]
+        }
+        dipnot_rows = [
+            idx for idx in self.frame["disclosure_index"].astype(str) if "dipnot" in by_idx_summary.get(idx, "").lower()
+        ]
+        self.assertEqual(dipnot_rows, [])
+
+    def test_cleanup_regressions_subrows_capex_eps_and_anomalies(self):
+        akenr = self.rows.loc[("AKENR", 2011, 4)]
+        self.assertEqual(akenr.F13_kisa_vadeli_finansal_borclar, 207_833_040 + 265_962_296)
+
+        tavhl_q1 = self.rows.loc[("TAVHL", 2016, 1)]
+        self.assertEqual(tavhl_q1.F15_capex_ytd, -71_335_000)
+        self.assertEqual(tavhl_q1.F15_amortisman_ve_itfa_ytd, 78_691_000)
+
+        tavhl_q3 = self.rows.loc[("TAVHL", 2016, 3)]
+        self.assertAlmostEqual(tavhl_q3.kap_raporlanan_hbk_ytd, 0.99, places=6)
+
+        alctl = self.rows.loc[("ALCTL", 2018, 4)]
+        self.assertTrue(pd.isna(alctl.kap_raporlanan_hbk_ytd))
+
+        thyao = self.rows.loc[("THYAO", 2013, 4)]
+        self.assertTrue(pd.isna(thyao.F16_ar_ge_giderleri_ytd))
+        self.assertIn("raw_source_row_shift_ar_ge", thyao.qa_flags)
+
+        gsdde = self.rows.loc[("GSDDE", 2010, 1)]
+        self.assertIn("non_standard_financial_leasing_bs_schema", gsdde.qa_flags)
+
+        zoren = self.rows.loc[("ZOREN", 2012, 3)]
+        self.assertTrue(pd.isna(zoren.F14_borc_ozkaynak_orani))
+        self.assertTrue(np.isfinite(zoren.F14_ozkaynak_aktif_orani))
+        zoren_missing = [
+            r for r in self.quality["missing_values"]
+            if r["ticker"] == "ZOREN" and r["period"] == "2012Q3" and r["column"] == "F14_borc_ozkaynak_orani"
+        ]
+        self.assertEqual(len(zoren_missing), 1)
+        self.assertEqual(zoren_missing[0]["reason"], "non_positive_equity")
+
+    def test_training_matrix_pit_macro_lags_and_negative_equity_guard(self):
+        with tempfile.TemporaryDirectory() as temp:
+            canon_path = Path(temp) / "canon.csv"
+            self.frame.to_csv(canon_path, index=False)
+            matrix = tm_builder.build_training_matrix(canonical_csv=canon_path)
+        self.assertEqual(len(matrix), 5280)
+        q1_60 = matrix[(matrix["observation_period"] == "2019Q1") & (matrix["horizon_days"] == 60)].iloc[0]
+        self.assertEqual(q1_60["t0_date"], "2019-03-02")
+        self.assertEqual(q1_60["macro_obs_month_lag1"], "2019-01")
+        self.assertEqual(q1_60["ip_obs_month_lag2"], "2018-12")
+        q2_30 = matrix[(matrix["observation_period"] == "2019Q2") & (matrix["horizon_days"] == 30)].iloc[0]
+        self.assertEqual(q2_30["t0_date"], "2019-05-01")
+        self.assertEqual(q2_30["macro_obs_month_lag1"], "2019-03")
+        self.assertEqual(q2_30["ip_obs_month_lag2"], "2019-02")
+        for col in (
+            "R01_GPR_lag1q", "R01_GPR_lag2q", "R01_GPR_lag4q",
+            "R01_GPRC_TUR_lag1q", "R01_GPRC_TUR_lag2q", "R01_GPRC_TUR_lag4q",
+        ):
+            self.assertEqual(int(matrix[col].isna().sum()), 0)
+        de_vals = matrix["last_known_borc_ozkaynak_orani"].dropna()
+        self.assertTrue((de_vals > 0).all())
+        self.assertGreater(int((matrix["last_known_is_negative_equity"] == 1).sum()), 0)
 
 
 if __name__ == "__main__":

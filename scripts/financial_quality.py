@@ -65,6 +65,8 @@ def cash_flow_total(label):
     label = label.replace("faliyet", "faaliyet")  # observed spelling in old CLEBI filings
     if "duzeltme" in label or "net nakit akislarina neden" in label:
         return None
+    if label.endswith("esas faaliyetlerinden kaynaklanan net nakit akisi"):
+        return "T15_isletme_nakit_akisi_ytd", 3
     for prefix, field in (
         ("isletme faaliyet", "T15_isletme_nakit_akisi_ytd"),
         ("esas faaliyet", "T15_isletme_nakit_akisi_ytd"),
@@ -325,6 +327,13 @@ def missing_details(frame, report_audits, quarter_methods):
             field = source.get("fields", {}).get(column)
             if column == "F03_brut_kar_marji" and "mixed_activity_income_statement" in row.get("qa_flags", ""):
                 reason = "income_statement_scope_mismatch"
+            elif (
+                column == "F14_borc_ozkaynak_orani"
+                and pd.notna(row["T14_toplam_ozkaynaklar"])
+                and float(row["T14_toplam_ozkaynaklar"]) <= 0
+            ):
+                reason = "non_positive_equity"
+                detail = {"T14_toplam_ozkaynaklar": float(row["T14_toplam_ozkaynaklar"])}
             elif column in DEPENDENCIES:
                 missing = [name for name in DEPENDENCIES[column] if pd.isna(row[name])]
                 reason = "missing_component" if missing else "zero_denominator_or_unavailable"

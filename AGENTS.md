@@ -1,6 +1,6 @@
 # AI ve geliştirici çalışma rehberi
 
-Bu rehber bütün depo için geçerlidir. Son durum özeti **8 Kasım 2026** tarihlidir. Güncel kullanıcı talebi bu rehberdeki önerilerden önceliklidir. Önce mevcut işi ve değişiklikleri incele; yapılmış çalışmayı yeniden başlatma.
+Bu rehber bütün depo için geçerlidir. Son durum özeti **20 Kasım 2026** tarihlidir. Güncel kullanıcı talebi bu rehberdeki önerilerden önceliklidir. Önce mevcut işi ve değişiklikleri incele; yapılmış çalışmayı yeniden başlatma.
 
 ## 1. Her işe başlarken ve her committe
 
@@ -46,16 +46,17 @@ Eski 7 Kasım denetimleri ve arkadaşın `cd10910` sürümündeki demo raporu **
 
 Bu tablo bir durum fotoğrafıdır; sayıları gelecekte zorla eşitlemek için test yazma. Veri değiştiğinde güncel manifest, kalite özeti ve denetim çıktısından yeniden kontrol et.
 
-| Konu | 8 Kasım 2026 durumu |
+| Konu | 20 Kasım 2026 durumu |
 |---|---|
 | Kanonik gözlem tablosu | **30 şirket × 44 çeyrek = 1.320 satır**, 2010Q1–2020Q4 |
-| Sütun | **157**; kimlik, kaynak/zaman metadatası, finansallar (`F15`/`F16`/`F18` dahil), `GPRC_TUR`/`GPRD`, çeyrek içi günlük yörüngeler ve türevler dahil |
-| Çoklu ufuklu eğitim matrisi | `data/training_matrix_pit_2010_2020.csv`: **5.280 satır × 113 sütun** ($t_0 \in \{+30\text{g}, +60\text{g}, +90\text{g}, +120\text{g}\}$, `available_at <= t0` ve `already_published_at_t0` maskeli) |
+| Sütun | **157**; kimlik, kaynak/zaman metadatası, finansallar (`F15`/`F16`/`F18` dahil), `GPRC_TUR`/`GPRD`, çeyrek içi günlük yörüngeler ve türevler dahil (`0` Dipnot kapağı bağlantısı) |
+| Çoklu ufuklu eğitim matrisi | `data/training_matrix_pit_2010_2020.csv`: **5.280 satır × 116 sütun** ($t_0 \in \{+30\text{g}, +60\text{g}, +90\text{g}, +120\text{g}\}$, erken ay makro tamponu, `available_at <= t0` ve `already_published_at_t0` maskeli) |
 | Şirket kapsamı | Altı gruptan beşer şirket; tüm BIST ve bütün raporlama şemaları değil |
 | Öncelikli dört hedef | Hasılat, dönem net kârı, toplam varlık ve toplam özkaynak; mevcut tabloda boşluk yok |
-| Kod kontrolü | **28 regresyon testi geçti** |
+| Kod kontrolü | **35 regresyon testi geçti** (`unittest discover -s tests -v`) |
 | Üretim denetimi | `errors=[]`, **çıkış 2**: kaynak/kapsam/yayın sürümü incelemesi sürüyor |
-| Kaynak/kapsam bayrağı | **109 şirket–dönem kaydı**; birim istisnaları (`manual_unit_override`) ve uzlaşma bayrakları dahil, hepsi kesin tutar hatası değildir |
+| Kaynak/kapsam bayrağı | **117 şirket–dönem kaydı**; birim istisnaları (`manual_unit_override`), `THYAO 2013Q4` ham Ar-Ge satır kayması (`raw_source_row_shift_ar_ge`), `GSDDE 2010–2011` şema bayrağı ve uzlaşma bayrakları dahil |
+| Eksiklik denetimi | `data/quality/missing_audit_with_links.csv`: 4.095 kayıtta **0** istemsiz parser kaçağı (kalan 1 `LIKELY_PARSER_MISS` bilinçli temizlenen `THYAO 2013Q4` Ar-Ge satırı; tablo türüne göre doğrudan KAP linkli) |
 | Brüt kâr taraması | 1 TL eşiğinde **1 olağan kaynak farkı (`ALCTL 2010Q3`)**, **75 karma faaliyet kapsamı** incelemesi (`TUPRS 2010Q1–2012Q4` hizmet gelirleri ve `RYSAS 2011Q1` işaret farkı çözüldü) |
 | Tarihsel kullanılabilirlik | `fully_point_in_time_verified=false` |
 | Model/site | Mevcut veriyle doğrulanmış, üretime hazır model paketi ve çalışan tahmin sitesi yok |

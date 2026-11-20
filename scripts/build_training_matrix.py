@@ -15,6 +15,10 @@ AGENTS.md P0-C kurallarına uygun olarak:
    - Günlük serilerden (USDTRY, EURTRY, OFR FSI [+2 ABD iş günü], GPRD [+7 takvim günü])
      yalnız gerçek gözlem günleri (non-ffilled) ve available_at <= t0 üzerinden çeyrek içi
      dağılım/yörünge özelliklerini (_q_mean, _q_last, _q_std, _q_max, _last15d_diff) hesaplar.
+   - Aylık makro ve jeopolitik risk serilerinde erken ay sızıntısı önlenir: t0 gün numarası
+     < 5 ise (ör. Q1 +60g Mart 1-2, Q2 +30g Mayıs 1) TÜFE/ÜFE/GPR için (m - 2), t0 gün
+     numarası < 15 ise Sanayi Üretimi için (m - 3) gecikmesi kullanılır; 2010 dönemi çeyrek
+     gecikmeleri (q-1, q-2, q-4) takvim olarak 2009 aylık verisinden doldurulur.
    - Türkiye Jeopolitik Risk Endeksi (R01_GPRC_TUR), küresel GPR/GPRT/GPRA (cari ve q-1, q-2, q-4
      gecikmeleri) ile alt sektör (SAVUNMA, ULAŞTIRMA, BİLİŞİM vb.) ve F18 (alınan avanslar /
      ertelenmiş gelirler) çarpımsal etkileşim terimlerini (X04) sabit yön kodlamadan üretir.
@@ -77,13 +81,11 @@ def build_training_matrix(
     unique_periods = df[["year", "quarter"]].drop_duplicates().sort_values(["year", "quarter"]).to_records(index=False)
     period_q_list = [(int(y), int(q)) for y, q in unique_periods]
 
-    # Map each (year, quarter) to quarter-end macro/risk for quarter lags (q-1, q-2, q-4)
-    q_end_risk: dict[tuple[int, int], dict[str, float | None]] = {}
-    for yr, q_num in period_q_list:
-        p_end = pd.Timestamp(f"{yr}-{QUARTER_END_DATES[q_num]}")
-        ym_lag1 = (pd.Period(p_end.strftime("%Y-%m"), freq="M") - 1).strftime("%Y-%m")
-        m_row = m_by_ym.get(ym_lag1, {})
-        q_end_risk[(yr, q_num)] = {
+    def _risk_for_quarter(q_period: pd.Period) -> dict[str, Any]:
+        # Monthly macro known at quarter-end uses (quarter_end_month - 1).
+        q_end_ym = q_period.asfreq("M", "end") - 1
+        m_row = m_by_ym.get(q_end_ym.strftime("%Y-%m"), {})
+        return {
             "GPR": m_row.get("GPR"),
             "GPRC_TUR": m_row.get("GPRC_TUR"),
             "GPRT": m_row.get("GPRT"),
@@ -91,18 +93,21 @@ def build_training_matrix(
         }
 
     macro_traj_cache: dict[tuple[int, int, int], dict[str, Any]] = {}
-    for idx_p, (yr, q_num) in enumerate(period_q_list):
+    for yr, q_num in period_q_list:
         q_start = pd.Timestamp(f"{yr}-{QUARTER_START_DATES[q_num]}")
         p_end = pd.Timestamp(f"{yr}-{QUARTER_END_DATES[q_num]}")
-        lag1_key = period_q_list[idx_p - 1] if idx_p >= 1 else None
-        lag2_key = period_q_list[idx_p - 2] if idx_p >= 2 else None
-        lag4_key = period_q_list[idx_p - 4] if idx_p >= 4 else None
+        cur_q = pd.Period(f"{yr}Q{q_num}", freq="Q")
+        r_lag1 = _risk_for_quarter(cur_q - 1)
+        r_lag2 = _risk_for_quarter(cur_q - 2)
+        r_lag4 = _risk_for_quarter(cur_q - 4)
 
         for h in horizons:
             t0_dt = _compute_t0_date(yr, q_num, h)
-            t0_ym = t0_dt.strftime("%Y-%m")
-            ym_m1 = (pd.Period(t0_ym, freq="M") - 1).strftime("%Y-%m")
-            ym_m2 = (pd.Period(t0_ym, freq="M") - 2).strftime("%Y-%m")
+            t0_period_m = pd.Period(t0_dt.strftime("%Y-%m"), freq="M")
+            lag1_months = 2 if t0_dt.day < 5 else 1
+            lag2_months = 3 if t0_dt.day < 15 else 2
+            ym_m1 = (t0_period_m - lag1_months).strftime("%Y-%m")
+            ym_m2 = (t0_period_m - lag2_months).strftime("%Y-%m")
             m1_vals = m_by_ym.get(ym_m1, {})
             m2_vals = m_by_ym.get(ym_m2, {})
 
@@ -123,14 +128,14 @@ def build_training_matrix(
                 "R04_GPRT": m1_vals.get("GPRT"),
                 "R04_GPRA": m1_vals.get("GPRA"),
                 "R02_GEPU_ppp": m1_vals.get("GEPU_ppp"),
-                "R01_GPR_lag1q": q_end_risk.get(lag1_key, {}).get("GPR") if lag1_key else None,
-                "R01_GPR_lag2q": q_end_risk.get(lag2_key, {}).get("GPR") if lag2_key else None,
-                "R01_GPR_lag4q": q_end_risk.get(lag4_key, {}).get("GPR") if lag4_key else None,
-                "R01_GPRC_TUR_lag1q": q_end_risk.get(lag1_key, {}).get("GPRC_TUR") if lag1_key else None,
-                "R01_GPRC_TUR_lag2q": q_end_risk.get(lag2_key, {}).get("GPRC_TUR") if lag2_key else None,
-                "R01_GPRC_TUR_lag4q": q_end_risk.get(lag4_key, {}).get("GPRC_TUR") if lag4_key else None,
-                "R04_GPRT_lag1q": q_end_risk.get(lag1_key, {}).get("GPRT") if lag1_key else None,
-                "R04_GPRA_lag1q": q_end_risk.get(lag1_key, {}).get("GPRA") if lag1_key else None,
+                "R01_GPR_lag1q": r_lag1.get("GPR"),
+                "R01_GPR_lag2q": r_lag2.get("GPR"),
+                "R01_GPR_lag4q": r_lag4.get("GPR"),
+                "R01_GPRC_TUR_lag1q": r_lag1.get("GPRC_TUR"),
+                "R01_GPRC_TUR_lag2q": r_lag2.get("GPRC_TUR"),
+                "R01_GPRC_TUR_lag4q": r_lag4.get("GPRC_TUR"),
+                "R04_GPRT_lag1q": r_lag1.get("GPRT"),
+                "R04_GPRA_lag1q": r_lag1.get("GPRA"),
                 **traj,
             }
 
@@ -224,6 +229,22 @@ def build_training_matrix(
 
                 for short_name, src_col in last_known_cols:
                     rec[f"last_known_{short_name}"] = last_row.get(src_col) if last_row else None
+
+                last_eq = last_row.get("T14_toplam_ozkaynaklar") if last_row else None
+                last_assets = last_row.get("T11_toplam_varliklar") if last_row else None
+                last_ar = last_row.get("F10_kisa_vadeli_ticari_alacaklar") if last_row else None
+                last_ap = last_row.get("kisa_vadeli_ticari_borclar") if last_row else None
+                rec["last_known_is_negative_equity"] = int(float(last_eq) <= 0) if (last_row and pd.notna(last_eq)) else None
+                rec["last_known_kisa_ticari_alacak_aktif_orani"] = (
+                    float(last_ar) / float(last_assets)
+                    if (last_row and pd.notna(last_ar) and pd.notna(last_assets) and float(last_assets) > 0)
+                    else None
+                )
+                rec["last_known_kisa_ticari_borc_aktif_orani"] = (
+                    float(last_ap) / float(last_assets)
+                    if (last_row and pd.notna(last_ap) and pd.notna(last_assets) and float(last_assets) > 0)
+                    else None
+                )
 
                 for short_name, src_col in (
                     ("hasilat_ceyrek", "T01_hasilat_ceyrek"),
